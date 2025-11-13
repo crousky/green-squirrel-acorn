@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "ms-azuretools.vscode-azurefunctions",
+        "ms-vscode.vscode-node-azure-pack",
+        "editorconfig.editorconfig",
+        "visualstudioexptteam.vscodeintellicode",
+        "ms-vscode.powershell"
+    ]
+}

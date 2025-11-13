@@ -1,0 +1,22 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Squirrel silhouette -->
+  <ellipse cx="200" cy="250" rx="80" ry="100" fill="#228B22"/>
+  <circle cx="200" cy="180" r="60" fill="#228B22"/>
+  <ellipse cx="160" cy="330" rx="25" ry="40" fill="#228B22"/>
+  <ellipse cx="240" cy="330" rx="25" ry="40" fill="#228B22"/>
+  <!-- Tail -->
+  <path d="M 120 220 Q 60 150 80 80 Q 100 100 140 180" fill="#228B22" opacity="0.8"/>
+  <!-- Ears -->
+  <ellipse cx="175" cy="150" rx="15" ry="25" fill="#228B22"/>
+  <ellipse cx="225" cy="150" rx="15" ry="25" fill="#228B22"/>
+  <!-- Eyes -->
+  <circle cx="185" cy="175" r="8" fill="#fff"/>
+  <circle cx="215" cy="175" r="8" fill="#fff"/>
+  <circle cx="187" cy="175" r="4" fill="#333"/>
+  <circle cx="217" cy="175" r="4" fill="#333"/>
+  <!-- Nose -->
+  <circle cx="200" cy="195" r="5" fill="#8B4513"/>
+  <!-- Acorn -->
+  <ellipse cx="280" cy="280" rx="20" ry="25" fill="#8B4513"/>
+  <path d="M 280 255 Q 270 245 280 240 Q 290 245 280 255" fill="#228B22"/>
+</svg>

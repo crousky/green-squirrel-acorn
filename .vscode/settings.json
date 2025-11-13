@@ -1,0 +1,24 @@
+{
+    "dotnet.defaultSolution": "GreenSquirrelDev.sln",
+    "files.exclude": {
+        "**/bin": true,
+        "**/obj": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/*.code-search": true,
+        "**/bin": true,
+        "**/obj": true
+    },
+    "files.watcherExclude": {
+        "**/bin/**": true,
+        "**/obj/**": true
+    },
+    "csharp.suppressDotnetRestoreNotification": true,
+    "azureFunctions.deploySubpath": "src/GreenSquirrelDev.Functions/bin/Release/net8.0/publish",
+    "azureFunctions.projectLanguage": "C#",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen",
+    "azureFunctions.preDeployTask": "publish"
+}
