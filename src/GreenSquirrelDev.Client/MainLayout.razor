@@ -1,0 +1,52 @@
+@inherits LayoutComponentBase
+
+<div class="page">
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="nav-brand">
+                    <a href="/" class="logo">
+                        <img src="/images/logo.svg" alt="Green Squirrel Dev" />
+                        <span>Green Squirrel Dev</span>
+                    </a>
+                </div>
+                <div class="nav-menu">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/#projects" class="nav-link">Projects</a>
+                    <a href="/#about" class="nav-link">About</a>
+                    <AuthorizeView>
+                        <Authorized>
+                            <a href="/profile" class="nav-link">Profile</a>
+                            <button @onclick="SignOut" class="btn btn-secondary">Sign Out</button>
+                        </Authorized>
+                        <NotAuthorized>
+                            <button @onclick="SignIn" class="btn btn-primary">Sign In with Google</button>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        @Body
+    </main>
+
+    <Footer />
+</div>
+
+@code {
+    [Inject] private IAuthService AuthService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private async Task SignIn()
+    {
+        await AuthService.SignInWithGoogleAsync();
+    }
+
+    private async Task SignOut()
+    {
+        await AuthService.SignOutAsync();
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}

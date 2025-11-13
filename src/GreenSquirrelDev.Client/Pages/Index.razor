@@ -1,0 +1,42 @@
+@page "/"
+@inject IProjectService ProjectService
+
+<PageTitle>Green Squirrel Dev - Portfolio & Projects</PageTitle>
+
+<HeroSection />
+
+<section id="projects" class="projects-section">
+    <div class="container">
+        <h2 class="section-title">Featured Projects</h2>
+        <p class="section-subtitle">Innovative tools and applications for runners, readers, and productivity enthusiasts</p>
+
+        @if (projects == null)
+        {
+            <div class="loading">Loading projects...</div>
+        }
+        else if (!projects.Any())
+        {
+            <p>No projects available.</p>
+        }
+        else
+        {
+            <div class="projects-grid">
+                @foreach (var project in projects)
+                {
+                    <ProjectCard Project="@project" />
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<AboutSection />
+
+@code {
+    private List<Project>? projects;
+
+    protected override async Task OnInitializedAsync()
+    {
+        projects = await ProjectService.GetProjectsAsync();
+    }
+}

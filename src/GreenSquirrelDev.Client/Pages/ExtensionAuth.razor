@@ -1,0 +1,100 @@
+@page "/auth/extension"
+@inject IAuthService AuthService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+
+<PageTitle>Extension Authentication - Green Squirrel Dev</PageTitle>
+
+<div class="container auth-container">
+    <div class="auth-card">
+        <h1>Chrome Extension Authentication</h1>
+
+        @if (isProcessing)
+        {
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Authenticating your extension...</p>
+            </div>
+        }
+        else if (isSuccess)
+        {
+            <div class="success-message">
+                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+                <h2>Authentication Successful!</h2>
+                <p>You can now close this window and return to the extension.</p>
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error-message">
+                <h2>Authentication Failed</h2>
+                <p>@errorMessage</p>
+                <button @onclick="RetryAuth" class="btn btn-primary">Try Again</button>
+            </div>
+        }
+        else
+        {
+            <p>Please sign in with your Google account to authorize the Chrome extension.</p>
+            <button @onclick="SignIn" class="btn btn-primary btn-large">
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "extensionId")]
+    public string? ExtensionId { get; set; }
+
+    private bool isProcessing = false;
+    private bool isSuccess = false;
+    private string? errorMessage;
+
+    private async Task SignIn()
+    {
+        if (string.IsNullOrEmpty(ExtensionId))
+        {
+            errorMessage = "Extension ID is missing. Please try again from the extension.";
+            return;
+        }
+
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            var authResponse = await AuthService.SignInWithGoogleAsync();
+
+            if (authResponse != null)
+            {
+                // Send token back to extension
+                await JSRuntime.InvokeVoidAsync("sendTokenToExtension", ExtensionId, authResponse.Token);
+                isSuccess = true;
+            }
+            else
+            {
+                errorMessage = "Authentication failed. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private void RetryAuth()
+    {
+        errorMessage = null;
+        isSuccess = false;
+        isProcessing = false;
+    }
+}
