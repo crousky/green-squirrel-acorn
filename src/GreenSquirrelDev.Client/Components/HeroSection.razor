@@ -1,0 +1,39 @@
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    Welcome to <span class="brand-highlight">Green Squirrel Dev</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Building innovative tools and applications for runners, readers, and productivity enthusiasts.
+                    One acorn at a time.
+                </p>
+                <div class="hero-actions">
+                    <AuthorizeView>
+                        <Authorized>
+                            <a href="#projects" class="btn btn-primary btn-large">Explore Projects</a>
+                            <a href="/profile" class="btn btn-secondary btn-large">My Profile</a>
+                        </Authorized>
+                        <NotAuthorized>
+                            <a href="#projects" class="btn btn-primary btn-large">Explore Projects</a>
+                            <button @onclick="SignIn" class="btn btn-secondary btn-large">Get Started</button>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="/images/hero-squirrel.svg" alt="Green Squirrel mascot" class="squirrel-mascot" />
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Inject] private IAuthService AuthService { get; set; } = default!;
+
+    private async Task SignIn()
+    {
+        await AuthService.SignInWithGoogleAsync();
+    }
+}

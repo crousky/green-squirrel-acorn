@@ -1,0 +1,69 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Blazor Client",
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/src/GreenSquirrelDev.Client",
+            "browser": "edge",
+            "url": "https://localhost:5001",
+            "webRoot": "${workspaceFolder}/src/GreenSquirrelDev.Client",
+            "timeout": 120000,
+            "preLaunchTask": "build-client"
+        },
+        {
+            "name": "Launch Azure Functions",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-functions",
+            "program": "${workspaceFolder}/src/GreenSquirrelDev.Functions/bin/Debug/net8.0/GreenSquirrelDev.Functions.dll",
+            "args": [
+                "host",
+                "start",
+                "--port",
+                "7071"
+            ],
+            "cwd": "${workspaceFolder}/src/GreenSquirrelDev.Functions",
+            "stopAtEntry": false,
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Attach to Azure Functions",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        },
+        {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/GreenSquirrelDev.Client/bin/Debug/net8.0/GreenSquirrelDev.Client.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/GreenSquirrelDev.Client",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Launch Full Application",
+            "configurations": [
+                "Launch Azure Functions",
+                "Launch Blazor Client"
+            ],
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "1-compound",
+                "order": 1
+            }
+        }
+    ]
+}

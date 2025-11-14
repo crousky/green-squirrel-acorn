@@ -1,0 +1,50 @@
+@page "/profile"
+@attribute [Authorize]
+@inject IAuthService AuthService
+
+<PageTitle>My Profile - Green Squirrel Dev</PageTitle>
+
+<div class="container profile-container">
+    <h1>My Profile</h1>
+
+    @if (user == null)
+    {
+        <div class="loading">Loading profile...</div>
+    }
+    else
+    {
+        <div class="profile-card">
+            <div class="profile-header">
+                <img src="@user.ProfilePictureUrl" alt="@user.DisplayName" class="profile-picture" />
+                <div class="profile-info">
+                    <h2>@user.DisplayName</h2>
+                    <p class="email">@user.Email</p>
+                </div>
+            </div>
+
+            <div class="profile-details">
+                <div class="detail-row">
+                    <span class="label">Account Created:</span>
+                    <span class="value">@user.CreatedAt.ToString("MMMM dd, yyyy")</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Last Login:</span>
+                    <span class="value">@user.LastLoginAt.ToString("MMMM dd, yyyy HH:mm")</span>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <p class="info-text">Manage your account and access project-specific settings.</p>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private UserProfileDTO? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await AuthService.GetCurrentUserAsync();
+    }
+}
