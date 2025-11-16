@@ -1,5 +1,6 @@
 using GreenSquirrelDev.Shared.Models;
 using Microsoft.Azure.Cosmos;
+using User = GreenSquirrelDev.Shared.Models.User;
 
 namespace GreenSquirrelDev.Functions.Services;
 
