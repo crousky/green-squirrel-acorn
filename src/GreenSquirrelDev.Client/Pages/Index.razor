@@ -7,21 +7,46 @@
 
 <section id="projects" class="projects-section">
     <div class="container">
-        <h2 class="section-title">Featured Projects</h2>
-        <p class="section-subtitle">Innovative tools and applications for runners, readers, and productivity enthusiasts</p>
+        <h2 class="section-title">Live Projects</h2>
+        <p class="section-subtitle">Production-ready tools and applications available now</p>
 
         @if (projects == null)
         {
             <div class="loading">Loading projects...</div>
         }
-        else if (!projects.Any())
+        else if (!liveProjects.Any())
         {
-            <p>No projects available.</p>
+            <p>No live projects available.</p>
         }
         else
         {
             <div class="projects-grid">
-                @foreach (var project in projects)
+                @foreach (var project in liveProjects)
+                {
+                    <ProjectCard Project="@project" />
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<section class="projects-section coming-soon-section">
+    <div class="container">
+        <h2 class="section-title">Coming Soon</h2>
+        <p class="section-subtitle">Exciting projects currently in development</p>
+
+        @if (projects == null)
+        {
+            <div class="loading">Loading projects...</div>
+        }
+        else if (!comingSoonProjects.Any())
+        {
+            <p>No upcoming projects at this time.</p>
+        }
+        else
+        {
+            <div class="projects-grid">
+                @foreach (var project in comingSoonProjects)
                 {
                     <ProjectCard Project="@project" />
                 }
@@ -34,6 +59,8 @@
 
 @code {
     private List<Project>? projects;
+    private List<Project> liveProjects => projects?.Where(p => p.Status == ProjectStatus.Live).ToList() ?? new List<Project>();
+    private List<Project> comingSoonProjects => projects?.Where(p => p.Status == ProjectStatus.InDevelopment || p.Status == ProjectStatus.ComingSoon).ToList() ?? new List<Project>();
 
     protected override async Task OnInitializedAsync()
     {
