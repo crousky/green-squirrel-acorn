@@ -17,7 +17,7 @@
                         </Authorized>
                         <NotAuthorized>
                             <a href="#projects" class="btn btn-primary btn-large">Explore Projects</a>
-                            <button @onclick="SignIn" class="btn btn-secondary btn-large">Get Started</button>
+                            <a href="/login" class="btn btn-secondary btn-large">Get Started</a>
                         </NotAuthorized>
                     </AuthorizeView>
                 </div>
@@ -30,10 +30,4 @@
 </section>
 
 @code {
-    [Inject] private IAuthService AuthService { get; set; } = default!;
-
-    private async Task SignIn()
-    {
-        await AuthService.SignInWithGoogleAsync();
-    }
 }

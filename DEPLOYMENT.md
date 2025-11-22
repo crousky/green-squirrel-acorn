@@ -102,10 +102,9 @@ az staticwebapp create \
 5. Authorized JavaScript origins:
    - `https://greensquirrel.dev`
    - `http://localhost:5000` (for development)
-6. Authorized redirect URIs:
-   - `https://greensquirrel.dev/auth/callback`
-   - `https://greensquirrel.dev/auth/extension`
-   - `http://localhost:5000/auth/callback`
+6. Authorized redirect URIs (Azure SWA uses /.auth/login/google/callback):
+   - `https://greensquirrel.dev/.auth/login/google/callback`
+   - `https://<your-swa-name>.azurestaticapps.net/.auth/login/google/callback`
 7. Save Client ID and Client Secret
 
 ## Step 3: Configure Azure Static Web App
