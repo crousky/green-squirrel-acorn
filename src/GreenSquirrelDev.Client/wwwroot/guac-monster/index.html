@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guac Monster Space Invaders</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui-layer">
+            <div id="score">Score: 0</div>
+            <div id="boss-health-container">
+                <div id="boss-health-label">GUAC MONSTER</div>
+                <div id="boss-health-bar">
+                    <div id="boss-health-fill"></div>
+                </div>
+            </div>
+            <div id="level">Level: 1</div>
+            <div id="lives">Lives: 3</div>
+        </div>
+        <div id="start-screen" class="screen">
+            <h1>GUAC MONSTER</h1>
+            <p>Defeat the Guac Monster!</p>
+            <p>Arrow Keys to Move, Space to Shoot</p>
+            <button id="start-btn">Start Game</button>
+        </div>
+        <div id="game-over-screen" class="screen hidden">
+            <h1>GAME OVER</h1>
+            <p id="final-score">Score: 0</p>
+            <button id="restart-btn">Try Again</button>
+        </div>
+        <div id="victory-screen" class="screen hidden">
+            <h1>YOU WON!</h1>
+            <p>The Guac Monster is defeated!</p>
+            <p id="victory-score">Score: 0</p>
+            <button id="play-again-btn">Play Again</button>
+        </div>
+    </div>
+    <footer style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 10px; background: rgba(0, 0, 0, 0.8);">
+        <a href="/" style="color: #4ade80; text-decoration: none;">Created by Green Squirrel</a>
+    </footer>
+    <script src="game.js"></script>
+</body>
+
+</html>

@@ -11,6 +11,10 @@
   },
   "routes": [
     {
+      "route": "/guac-monster",
+      "rewrite": "/guac-monster/index.html"
+    },
+    {
       "route": "/login",
       "rewrite": "/.auth/login/google"
     },
@@ -33,7 +37,7 @@
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,gif,svg}", "/css/*", "/js/*", "/.auth/*"]
+    "exclude": ["/images/*.{png,jpg,gif,svg}", "/css/*", "/js/*", "/.auth/*", "/guac-monster/*"]
   },
   "responseOverrides": {
     "401": {
