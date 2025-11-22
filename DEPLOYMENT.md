@@ -12,7 +12,17 @@ This guide covers deploying the Green Squirrel Dev platform to Azure.
 
 ## Step 1: Create Azure Resources
 
-### 1.1 Create Resource Group
+You can deploy infrastructure using either **Bicep templates (recommended)** or **Azure CLI commands**.
+
+### Option A: Deploy with Bicep Templates (Recommended)
+
+The `infra/` folder contains Bicep templates that provision all required Azure resources:
+
+- **Cosmos DB** (serverless) with `Users` and `Projects` containers
+- **Static Web App** with configured app settings
+- **Application Insights** with Log Analytics workspace
+
+#### 1.1 Create Resource Group
 
 ```bash
 az group create \
@@ -20,7 +30,45 @@ az group create \
   --location centralus
 ```
 
-### 1.2 Create Cosmos DB Account
+#### 1.2 Deploy Infrastructure
+
+```bash
+# Deploy all resources with Bicep
+az deployment group create \
+  --resource-group greensquirrel-dev-rg \
+  --template-file infra/main.bicep \
+  --parameters \
+    environment=dev \
+    baseName=greensquirrel \
+    googleClientId="YOUR_GOOGLE_CLIENT_ID" \
+    googleClientSecret="YOUR_GOOGLE_CLIENT_SECRET" \
+    jwtSecret="YOUR_JWT_SECRET_MIN_32_CHARACTERS"
+```
+
+#### 1.3 View Deployment Outputs
+
+```bash
+az deployment group show \
+  --resource-group greensquirrel-dev-rg \
+  --name main \
+  --query properties.outputs
+```
+
+---
+
+### Option B: Deploy with Azure CLI (Manual)
+
+If you prefer manual resource creation:
+
+#### 1.1 Create Resource Group
+
+```bash
+az group create \
+  --name greensquirrel-dev-rg \
+  --location centralus
+```
+
+#### 1.2 Create Cosmos DB Account
 
 ```bash
 az cosmosdb create \
@@ -31,7 +79,7 @@ az cosmosdb create \
   --locations regionName=centralus
 ```
 
-### 1.3 Create Cosmos DB Database and Containers
+#### 1.3 Create Cosmos DB Database and Containers
 
 ```bash
 # Create database
@@ -59,7 +107,7 @@ az cosmosdb sql container create \
   --throughput 400
 ```
 
-### 1.4 Create Static Web App
+#### 1.4 Create Static Web App
 
 ```bash
 az staticwebapp create \
