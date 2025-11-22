@@ -27,9 +27,9 @@ const assets = {
     chip: new Image(),
 };
 
-assets.player.src = 'assets/player.png';
-assets.guac.src = 'assets/guac.png';
-assets.chip.src = 'assets/chip.png';
+assets.player.src = '/guac-monster/assets/player.png';
+assets.guac.src = '/guac-monster/assets/guac.png';
+assets.chip.src = '/guac-monster/assets/chip.png';
 
 // Input Handling
 const keys = {
