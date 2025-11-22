@@ -27,6 +27,10 @@
       "allowedRoles": ["authenticated"]
     },
     {
+      "route": "/account",
+      "allowedRoles": ["authenticated"]
+    },
+    {
       "route": "/*",
       "allowedRoles": ["anonymous"]
     }

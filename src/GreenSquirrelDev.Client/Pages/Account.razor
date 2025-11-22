@@ -1,0 +1,190 @@
+@page "/account"
+@attribute [Authorize]
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Account Settings - Green Squirrel Dev</PageTitle>
+
+<div class="container account-container">
+    <h1>Account Settings</h1>
+
+    @if (isLoading)
+    {
+        <div class="loading">Loading account information...</div>
+    }
+    else if (user == null)
+    {
+        <div class="error">Unable to load account information. Please try again.</div>
+    }
+    else
+    {
+        <div class="account-card">
+            <div class="account-header">
+                @if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+                {
+                    <img src="@user.ProfilePictureUrl" alt="@user.DisplayName" class="profile-picture" />
+                }
+                else
+                {
+                    <div class="profile-picture-placeholder">
+                        @(user.DisplayName?.FirstOrDefault().ToString().ToUpper() ?? "?")
+                    </div>
+                }
+                <div class="account-info">
+                    <h2>@user.DisplayName</h2>
+                    <p class="email">@user.Email</p>
+                </div>
+            </div>
+
+            <div class="account-form">
+                <h3>Edit Profile</h3>
+
+                <div class="form-group">
+                    <label for="displayName">Display Name</label>
+                    <input type="text"
+                           id="displayName"
+                           @bind="editDisplayName"
+                           @bind:event="oninput"
+                           class="form-control"
+                           placeholder="Enter your display name"
+                           maxlength="100" />
+                    <small class="form-hint">This name will be displayed across the site.</small>
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-error">@errorMessage</div>
+                }
+
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success">@successMessage</div>
+                }
+
+                <div class="form-actions">
+                    <button class="btn btn-primary"
+                            @onclick="SaveChanges"
+                            disabled="@(isSaving || !HasChanges)">
+                        @if (isSaving)
+                        {
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save Changes</span>
+                        }
+                    </button>
+                    <button class="btn btn-secondary"
+                            @onclick="ResetChanges"
+                            disabled="@(isSaving || !HasChanges)">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+            <div class="account-details">
+                <h3>Account Information</h3>
+                <div class="detail-row">
+                    <span class="label">Email:</span>
+                    <span class="value">@user.Email</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Account Created:</span>
+                    <span class="value">@user.CreatedAt.ToString("MMMM dd, yyyy")</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Last Login:</span>
+                    <span class="value">@user.LastLoginAt.ToString("MMMM dd, yyyy HH:mm") UTC</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private UserProfileDTO? user;
+    private string? editDisplayName;
+    private string? originalDisplayName;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private bool HasChanges => editDisplayName != originalDisplayName && !string.IsNullOrWhiteSpace(editDisplayName);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserProfile();
+    }
+
+    private async Task LoadUserProfile()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            user = await AuthService.GetCurrentUserAsync();
+            if (user != null)
+            {
+                editDisplayName = user.DisplayName;
+                originalDisplayName = user.DisplayName;
+            }
+        }
+        catch
+        {
+            errorMessage = "Failed to load account information.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveChanges()
+    {
+        if (string.IsNullOrWhiteSpace(editDisplayName))
+        {
+            errorMessage = "Display name cannot be empty.";
+            return;
+        }
+
+        isSaving = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            var updatedUser = await AuthService.UpdateProfileAsync(editDisplayName.Trim());
+            if (updatedUser != null)
+            {
+                user = updatedUser;
+                originalDisplayName = updatedUser.DisplayName;
+                editDisplayName = updatedUser.DisplayName;
+                successMessage = "Your profile has been updated successfully.";
+
+                // Clear cache to refresh the layout
+                AuthService.ClearCache();
+            }
+            else
+            {
+                errorMessage = "Failed to update profile. Please try again.";
+            }
+        }
+        catch
+        {
+            errorMessage = "An error occurred while saving changes.";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void ResetChanges()
+    {
+        editDisplayName = originalDisplayName;
+        errorMessage = null;
+        successMessage = null;
+    }
+}

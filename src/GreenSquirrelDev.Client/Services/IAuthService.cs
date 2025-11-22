@@ -9,4 +9,6 @@ public interface IAuthService
     Task<UserProfileDTO?> GetCurrentUserAsync();
     Task<bool> IsAuthenticatedAsync();
     string? GetToken();
+    Task<UserProfileDTO?> UpdateProfileAsync(string displayName);
+    void ClearCache();
 }

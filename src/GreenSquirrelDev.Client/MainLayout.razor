@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@inject IAuthService AuthService
 
 <div class="page">
     <header class="header">
@@ -16,7 +17,16 @@
                     <a href="/#about" class="nav-link">About</a>
                     <AuthorizeView>
                         <Authorized>
-                            <a href="/profile" class="nav-link">Profile</a>
+                            <a href="/account" class="nav-link user-link">
+                                @if (!string.IsNullOrEmpty(userDisplayName))
+                                {
+                                    <span>@userDisplayName</span>
+                                }
+                                else
+                                {
+                                    <span>Account</span>
+                                }
+                            </a>
                             <a href="/logout" class="btn btn-secondary">Sign Out</a>
                         </Authorized>
                         <NotAuthorized>
@@ -36,4 +46,14 @@
 </div>
 
 @code {
+    private string? userDisplayName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await AuthService.GetCurrentUserAsync();
+        if (user != null)
+        {
+            userDisplayName = user.DisplayName;
+        }
+    }
 }
