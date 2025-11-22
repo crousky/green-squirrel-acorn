@@ -2,6 +2,7 @@
 @inject IAuthService AuthService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
+@using System.Net.Http.Json
 
 <PageTitle>Extension Authentication - Green Squirrel Dev</PageTitle>
 
@@ -35,12 +36,12 @@
                 <button @onclick="RetryAuth" class="btn btn-primary">Try Again</button>
             </div>
         }
-        else
+        else if (!isAuthenticated)
         {
             <p>Please sign in with your Google account to authorize the Chrome extension.</p>
-            <button @onclick="SignIn" class="btn btn-primary btn-large">
+            <a href="/login?post_login_redirect_uri=/auth/extension@(string.IsNullOrEmpty(ExtensionId) ? "" : $"?extensionId={ExtensionId}")" class="btn btn-primary btn-large">
                 Sign in with Google
-            </button>
+            </a>
         }
     </div>
 </div>
@@ -52,9 +53,20 @@
 
     private bool isProcessing = false;
     private bool isSuccess = false;
+    private bool isAuthenticated = false;
     private string? errorMessage;
 
-    private async Task SignIn()
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = await AuthService.IsAuthenticatedAsync();
+
+        if (isAuthenticated && !string.IsNullOrEmpty(ExtensionId))
+        {
+            await CompleteExtensionAuth();
+        }
+    }
+
+    private async Task CompleteExtensionAuth()
     {
         if (string.IsNullOrEmpty(ExtensionId))
         {
@@ -67,17 +79,16 @@
 
         try
         {
-            var authResponse = await AuthService.SignInWithGoogleAsync();
-
-            if (authResponse != null)
+            var user = await AuthService.GetCurrentUserAsync();
+            if (user != null)
             {
-                // Send token back to extension
-                await JSRuntime.InvokeVoidAsync("sendTokenToExtension", ExtensionId, authResponse.Token);
+                // Send user info back to extension
+                await JSRuntime.InvokeVoidAsync("sendTokenToExtension", ExtensionId, user.Id);
                 isSuccess = true;
             }
             else
             {
-                errorMessage = "Authentication failed. Please try again.";
+                errorMessage = "Failed to get user information. Please try again.";
             }
         }
         catch (Exception ex)
@@ -96,5 +107,6 @@
         errorMessage = null;
         isSuccess = false;
         isProcessing = false;
+        Navigation.NavigateTo($"/auth/extension?extensionId={ExtensionId}", forceLoad: true);
     }
 }
