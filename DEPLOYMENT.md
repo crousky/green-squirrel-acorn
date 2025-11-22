@@ -22,34 +22,29 @@ The `infra/` folder contains Bicep templates that provision all required Azure r
 - **Static Web App** with configured app settings
 - **Application Insights** with Log Analytics workspace
 
-#### 1.1 Create Resource Group
+#### 1.1 Deploy Infrastructure
+
+The Bicep templates will create:
+- `green-squirrel-cosmos` - Cosmos DB account
+- `green-squirrel-site` - Static Web App
+- `green-squirrel-insights` - Application Insights
 
 ```bash
-az group create \
-  --name greensquirrel-dev-rg \
-  --location centralus
-```
-
-#### 1.2 Deploy Infrastructure
-
-```bash
-# Deploy all resources with Bicep
+# Deploy all resources with Bicep (uses existing resource group rg-green-squirrel)
 az deployment group create \
-  --resource-group greensquirrel-dev-rg \
+  --resource-group rg-green-squirrel \
   --template-file infra/main.bicep \
   --parameters \
-    environment=dev \
-    baseName=greensquirrel \
     googleClientId="YOUR_GOOGLE_CLIENT_ID" \
     googleClientSecret="YOUR_GOOGLE_CLIENT_SECRET" \
     jwtSecret="YOUR_JWT_SECRET_MIN_32_CHARACTERS"
 ```
 
-#### 1.3 View Deployment Outputs
+#### 1.2 View Deployment Outputs
 
 ```bash
 az deployment group show \
-  --resource-group greensquirrel-dev-rg \
+  --resource-group rg-green-squirrel \
   --name main \
   --query properties.outputs
 ```
@@ -58,68 +53,43 @@ az deployment group show \
 
 ### Option B: Deploy with Azure CLI (Manual)
 
-If you prefer manual resource creation:
+If you prefer manual resource creation (uses existing resource group `rg-green-squirrel`):
 
-#### 1.1 Create Resource Group
-
-```bash
-az group create \
-  --name greensquirrel-dev-rg \
-  --location centralus
-```
-
-#### 1.2 Create Cosmos DB Account
+#### 1.1 Create Cosmos DB Account
 
 ```bash
 az cosmosdb create \
-  --name greensquirrel-dev-cosmos \
-  --resource-group greensquirrel-dev-rg \
+  --name green-squirrel-cosmos \
+  --resource-group rg-green-squirrel \
   --default-consistency-level Session \
   --enable-automatic-failover false \
   --locations regionName=centralus
 ```
 
-#### 1.3 Create Cosmos DB Database and Containers
+#### 1.2 Create Cosmos DB Database and Containers
 
 ```bash
 # Create database
 az cosmosdb sql database create \
-  --account-name greensquirrel-dev-cosmos \
-  --resource-group greensquirrel-dev-rg \
+  --account-name green-squirrel-cosmos \
+  --resource-group rg-green-squirrel \
   --name GreenSquirrelDev
 
 # Create Users container
 az cosmosdb sql container create \
-  --account-name greensquirrel-dev-cosmos \
-  --resource-group greensquirrel-dev-rg \
+  --account-name green-squirrel-cosmos \
+  --resource-group rg-green-squirrel \
   --database-name GreenSquirrelDev \
   --name Users \
-  --partition-key-path "/partitionKey" \
-  --throughput 400
+  --partition-key-path "/partitionKey"
 
 # Create Projects container
 az cosmosdb sql container create \
-  --account-name greensquirrel-dev-cosmos \
-  --resource-group greensquirrel-dev-rg \
+  --account-name green-squirrel-cosmos \
+  --resource-group rg-green-squirrel \
   --database-name GreenSquirrelDev \
   --name Projects \
-  --partition-key-path "/partitionKey" \
-  --throughput 400
-```
-
-#### 1.4 Create Static Web App
-
-```bash
-az staticwebapp create \
-  --name greensquirrel-dev \
-  --resource-group greensquirrel-dev-rg \
-  --location centralus \
-  --sku Standard \
-  --source https://github.com/YOUR_USERNAME/green-squirrel-acorn \
-  --branch main \
-  --app-location "/src/GreenSquirrelDev.Client" \
-  --api-location "/src/GreenSquirrelDev.Functions" \
-  --output-location "wwwroot"
+  --partition-key-path "/partitionKey"
 ```
 
 ## Step 2: Configure Google OAuth
@@ -161,8 +131,8 @@ az staticwebapp create \
 
 ```bash
 az cosmosdb keys list \
-  --name greensquirrel-dev-cosmos \
-  --resource-group greensquirrel-dev-rg \
+  --name green-squirrel-cosmos \
+  --resource-group rg-green-squirrel \
   --type connection-strings \
   --query "connectionStrings[0].connectionString" \
   --output tsv
@@ -173,13 +143,13 @@ az cosmosdb keys list \
 ```bash
 # Get Static Web App API Key
 az staticwebapp secrets list \
-  --name greensquirrel-dev \
-  --resource-group greensquirrel-dev-rg
+  --name green-squirrel-site \
+  --resource-group rg-green-squirrel
 
 # Configure settings (replace with actual values)
 az staticwebapp appsettings set \
-  --name greensquirrel-dev \
-  --resource-group greensquirrel-dev-rg \
+  --name green-squirrel-site \
+  --resource-group rg-green-squirrel \
   --setting-names \
     CosmosDb__ConnectionString="YOUR_COSMOS_CONNECTION_STRING" \
     CosmosDb__DatabaseName="GreenSquirrelDev" \
@@ -196,8 +166,8 @@ az staticwebapp appsettings set \
 ```bash
 # Add custom domain
 az staticwebapp hostname set \
-  --name greensquirrel-dev \
-  --resource-group greensquirrel-dev-rg \
+  --name green-squirrel-site \
+  --resource-group rg-green-squirrel \
   --hostname greensquirrel.dev
 ```
 
@@ -265,8 +235,8 @@ jobs:
 
 ```bash
 az staticwebapp show \
-  --name greensquirrel-dev \
-  --resource-group greensquirrel-dev-rg \
+  --name green-squirrel-site \
+  --resource-group rg-green-squirrel \
   --query "defaultHostname" \
   --output tsv
 ```
@@ -294,8 +264,8 @@ curl -X GET https://greensquirrel.dev/api/auth/verify \
 
 ```bash
 az staticwebapp appsettings set \
-  --name greensquirrel-dev \
-  --resource-group greensquirrel-dev-rg \
+  --name green-squirrel-site \
+  --resource-group rg-green-squirrel \
   --setting-names \
     APPLICATIONINSIGHTS_CONNECTION_STRING="YOUR_APP_INSIGHTS_CONNECTION_STRING"
 ```
@@ -305,8 +275,8 @@ az staticwebapp appsettings set \
 ```bash
 # View Function logs
 az staticwebapp functions log \
-  --name greensquirrel-dev \
-  --resource-group greensquirrel-dev-rg
+  --name green-squirrel-site \
+  --resource-group rg-green-squirrel
 ```
 
 ## Troubleshooting
@@ -338,8 +308,8 @@ To rollback to a previous deployment:
 ```bash
 # List deployments
 az staticwebapp show \
-  --name greensquirrel-dev \
-  --resource-group greensquirrel-dev-rg
+  --name green-squirrel-site \
+  --resource-group rg-green-squirrel
 
 # Rollback via GitHub Actions by reverting commit
 ```

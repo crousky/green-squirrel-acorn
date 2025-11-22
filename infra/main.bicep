@@ -1,14 +1,3 @@
-@description('The environment name (dev, staging, prod)')
-@allowed([
-  'dev'
-  'staging'
-  'prod'
-])
-param environment string = 'dev'
-
-@description('The base name for resources')
-param baseName string = 'greensquirrel'
-
 @description('The location for all resources')
 param location string = resourceGroup().location
 
@@ -31,15 +20,13 @@ param jwtIssuer string = 'https://greensquirrel.dev'
 @description('JWT Audience URL')
 param jwtAudience string = 'https://greensquirrel.dev'
 
-// Variables
-var resourceSuffix = '${baseName}-${environment}'
-var cosmosDbAccountName = '${resourceSuffix}-cosmos'
-var staticWebAppName = '${resourceSuffix}-swa'
-var appInsightsName = '${resourceSuffix}-insights'
-var logAnalyticsName = '${resourceSuffix}-logs'
+// Variables - using existing resource naming convention
+var cosmosDbAccountName = 'green-squirrel-cosmos'
+var staticWebAppName = 'green-squirrel-site'
+var appInsightsName = 'green-squirrel-insights'
+var logAnalyticsName = 'green-squirrel-logs'
 
 var tags = {
-  environment: environment
   project: 'green-squirrel-dev'
   managedBy: 'bicep'
 }
@@ -79,7 +66,7 @@ module staticWebApp 'static-web-app.bicep' = {
   params: {
     staticWebAppName: staticWebAppName
     location: location
-    sku: environment == 'prod' ? 'Standard' : 'Free'
+    sku: 'Free'
     tags: tags
     cosmosDbConnectionString: cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString
     cosmosDbDatabaseName: 'GreenSquirrelDev'

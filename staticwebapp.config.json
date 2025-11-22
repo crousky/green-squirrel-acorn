@@ -12,7 +12,7 @@
   "routes": [
     {
       "route": "/login",
-      "rewrite": "/.auth/login/google"
+      "rewrite": "/.auth/login/google?post_login_redirect_uri=/account"
     },
     {
       "route": "/logout",

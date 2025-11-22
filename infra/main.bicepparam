@@ -1,8 +1,6 @@
 using './main.bicep'
 
-// Environment configuration
-param environment = 'dev'
-param baseName = 'greensquirrel'
+// Location configuration
 param location = 'centralus'
 
 // Google OAuth credentials (replace with actual values or use Key Vault references)
