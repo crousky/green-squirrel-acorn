@@ -50,7 +50,7 @@
     }
   },
   "globalHeaders": {
-    "content-security-policy": "default-src 'self' https://accounts.google.com https://greensquirrel.dev; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://greensquirrel.dev https://accounts.google.com",
+    "content-security-policy": "default-src 'self' https://accounts.google.com https://greensquirrel.dev https://www.googletagmanager.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://accounts.google.com; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://greensquirrel.dev https://accounts.google.com",
     "x-frame-options": "SAMEORIGIN",
     "x-content-type-options": "nosniff",
     "x-xss-protection": "1; mode=block",
