@@ -135,18 +135,25 @@ public class UserProfileFunction
                 return badResponse;
             }
 
-            // Get existing user
+            // Get existing user or create if authenticated but not in database
             var user = await _userRepository.GetUserByGoogleIdAsync(userId);
 
             if (user == null)
             {
-                var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
-                await notFoundResponse.WriteAsJsonAsync(new ApiResponse<string>
+                // User authenticated but not in our database yet - create them
+                var name = req.Headers.TryGetValues("x-ms-client-principal-name", out var nameValues)
+                    ? nameValues.FirstOrDefault() ?? string.Empty
+                    : string.Empty;
+
+                user = new Shared.Models.User
                 {
-                    Success = false,
-                    Error = "User not found."
-                });
-                return notFoundResponse;
+                    GoogleUserId = userId,
+                    Email = name, // SWA provides email as the principal name for Google
+                    DisplayName = name.Split('@')[0], // Default display name from email
+                    ProfilePictureUrl = string.Empty
+                };
+                user = await _userRepository.CreateUserAsync(user);
+                _logger.LogInformation("Created new user from SWA auth during profile update: {UserId}", user.Id);
             }
 
             // Update display name if provided
