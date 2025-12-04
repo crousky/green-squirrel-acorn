@@ -146,6 +146,50 @@ resource projectsContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/c
   }
 }
 
+// ConversionJobs Container (HiveReader)
+resource conversionJobsContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-05-15' = {
+  parent: database
+  name: 'ConversionJobs'
+  properties: {
+    resource: {
+      id: 'ConversionJobs'
+      partitionKey: {
+        paths: [
+          '/partitionKey'
+        ]
+        kind: 'Hash'
+      }
+      indexingPolicy: {
+        indexingMode: 'consistent'
+        automatic: true
+        includedPaths: [
+          {
+            path: '/*'
+          }
+        ]
+        excludedPaths: [
+          {
+            path: '/"_etag"/?'
+          }
+        ]
+        compositeIndexes: [
+          [
+            {
+              path: '/userId'
+              order: 'ascending'
+            }
+            {
+              path: '/createdAt'
+              order: 'descending'
+            }
+          ]
+        ]
+      }
+      defaultTtl: 7776000 // 90 days in seconds
+    }
+  }
+}
+
 // Outputs
 @description('The Cosmos DB account name')
 output accountName string = cosmosDbAccount.name

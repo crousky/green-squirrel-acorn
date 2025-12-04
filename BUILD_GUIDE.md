@@ -51,11 +51,20 @@ Edit `src/GreenSquirrelDev.Functions/local.settings.json`:
 
 ```json
 {
+  "IsEncrypted": false,
   "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "CosmosDb__ConnectionString": "YOUR_COSMOS_CONNECTION_STRING",
+    "CosmosDb__DatabaseName": "GreenSquirrelDev",
     "Google__ClientId": "YOUR_GOOGLE_CLIENT_ID",
     "Google__ClientSecret": "YOUR_GOOGLE_CLIENT_SECRET",
-    "Jwt__Secret": "YOUR_32_CHAR_SECRET_KEY_HERE_MINIMUM"
+    "Jwt__Secret": "YOUR_32_CHAR_SECRET_KEY_HERE_MINIMUM",
+    "Jwt__Issuer": "https://greensquirrel.dev",
+    "Jwt__Audience": "https://greensquirrel.dev",
+    "Jwt__ExpirationMinutes": "1440",
+    "AzureCommunicationService__ConnectionString": "YOUR_AZURE_COMM_CONNECTION_STRING",
+    "AzureCommunicationService__SenderEmail": "noreply@greensquirrel.dev"
   }
 }
 ```

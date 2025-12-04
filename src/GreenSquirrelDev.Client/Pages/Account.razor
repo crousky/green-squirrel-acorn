@@ -97,6 +97,71 @@
                     <span class="value">@user.LastLoginAt.ToString("MMMM dd, yyyy HH:mm") UTC</span>
                 </div>
             </div>
+
+            <div class="kindle-settings">
+                <h3>HiveReader - Kindle Settings</h3>
+                <p class="section-description">
+                    Configure your Kindle email address to receive articles via the HiveReader Chrome extension.
+                </p>
+
+                <div class="form-group">
+                    <label for="kindleEmail">Kindle Email Address</label>
+                    <input type="email"
+                           id="kindleEmail"
+                           @bind="editKindleEmail"
+                           @bind:event="oninput"
+                           class="form-control"
+                           placeholder="yourname@kindle.com"
+                           maxlength="100" />
+                    <small class="form-hint">
+                        Find your Kindle email in <a href="https://www.amazon.com/hz/mycd/myx#/home/settings/payment" target="_blank" rel="noopener">Amazon account settings</a> under "Send-to-Kindle E-Mail Settings".
+                    </small>
+                </div>
+
+                @if (!string.IsNullOrEmpty(kindleErrorMessage))
+                {
+                    <div class="alert alert-error">@kindleErrorMessage</div>
+                }
+
+                @if (!string.IsNullOrEmpty(kindleSuccessMessage))
+                {
+                    <div class="alert alert-success">@kindleSuccessMessage</div>
+                }
+
+                <div class="form-actions">
+                    <button class="btn btn-primary"
+                            @onclick="SaveKindleEmail"
+                            disabled="@(isSavingKindle || !HasKindleChanges)">
+                        @if (isSavingKindle)
+                        {
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save Kindle Email</span>
+                        }
+                    </button>
+                    @if (!string.IsNullOrEmpty(originalKindleEmail))
+                    {
+                        <button class="btn btn-danger"
+                                @onclick="RemoveKindleEmail"
+                                disabled="@isSavingKindle">
+                            Remove
+                        </button>
+                    }
+                </div>
+
+                <div class="kindle-instructions">
+                    <h4>Setup Instructions</h4>
+                    <ol>
+                        <li>Find your Kindle email address in your Amazon account settings</li>
+                        <li>Enter it above and save</li>
+                        <li>Add <strong>noreply@greensquirrel.dev</strong> to your approved email list in Amazon's "Personal Document Settings"</li>
+                        <li>Install the HiveReader Chrome extension</li>
+                        <li>Click the extension on any article to send it to your Kindle</li>
+                    </ol>
+                </div>
+            </div>
         </div>
     }
 </div>
@@ -110,11 +175,20 @@
     private string? errorMessage;
     private string? successMessage;
 
+    // Kindle email fields
+    private string? editKindleEmail;
+    private string? originalKindleEmail;
+    private bool isSavingKindle = false;
+    private string? kindleErrorMessage;
+    private string? kindleSuccessMessage;
+
     private bool HasChanges => editDisplayName != originalDisplayName && !string.IsNullOrWhiteSpace(editDisplayName);
+    private bool HasKindleChanges => editKindleEmail != originalKindleEmail && !string.IsNullOrWhiteSpace(editKindleEmail);
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUserProfile();
+        await LoadKindleEmail();
     }
 
     private async Task LoadUserProfile()
@@ -138,6 +212,23 @@
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private async Task LoadKindleEmail()
+    {
+        try
+        {
+            var kindleData = await AuthService.GetKindleEmailAsync();
+            if (kindleData != null)
+            {
+                editKindleEmail = kindleData.KindleEmail;
+                originalKindleEmail = kindleData.KindleEmail;
+            }
+        }
+        catch
+        {
+            // Ignore errors loading Kindle email
         }
     }
 
@@ -186,5 +277,77 @@
         editDisplayName = originalDisplayName;
         errorMessage = null;
         successMessage = null;
+    }
+
+    private async Task SaveKindleEmail()
+    {
+        if (string.IsNullOrWhiteSpace(editKindleEmail))
+        {
+            kindleErrorMessage = "Kindle email address is required.";
+            return;
+        }
+
+        if (!editKindleEmail.Trim().EndsWith("@kindle.com", StringComparison.OrdinalIgnoreCase))
+        {
+            kindleErrorMessage = "Please enter a valid @kindle.com email address.";
+            return;
+        }
+
+        isSavingKindle = true;
+        kindleErrorMessage = null;
+        kindleSuccessMessage = null;
+
+        try
+        {
+            var result = await AuthService.UpdateKindleEmailAsync(editKindleEmail.Trim());
+            if (result != null)
+            {
+                originalKindleEmail = result.KindleEmail;
+                editKindleEmail = result.KindleEmail;
+                kindleSuccessMessage = "Your Kindle email has been saved. Don't forget to whitelist noreply@greensquirrel.dev in your Amazon account!";
+            }
+            else
+            {
+                kindleErrorMessage = "Failed to save Kindle email. Please try again.";
+            }
+        }
+        catch
+        {
+            kindleErrorMessage = "An error occurred while saving.";
+        }
+        finally
+        {
+            isSavingKindle = false;
+        }
+    }
+
+    private async Task RemoveKindleEmail()
+    {
+        isSavingKindle = true;
+        kindleErrorMessage = null;
+        kindleSuccessMessage = null;
+
+        try
+        {
+            var success = await AuthService.DeleteKindleEmailAsync();
+            if (success)
+            {
+                originalKindleEmail = null;
+                editKindleEmail = null;
+                kindleSuccessMessage = "Your Kindle email has been removed.";
+            }
+            else
+            {
+                kindleErrorMessage = "Failed to remove Kindle email. Please try again.";
+            }
+        }
+        catch
+        {
+            kindleErrorMessage = "An error occurred while removing.";
+        }
+        finally
+        {
+            isSavingKindle = false;
+        }
     }
 }

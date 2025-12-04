@@ -11,4 +11,9 @@ public interface IAuthService
     string? GetToken();
     Task<UserProfileDTO?> UpdateProfileAsync(string displayName);
     void ClearCache();
+
+    // HiveReader Kindle email methods
+    Task<KindleEmailDTO?> GetKindleEmailAsync();
+    Task<KindleEmailDTO?> UpdateKindleEmailAsync(string kindleEmail);
+    Task<bool> DeleteKindleEmailAsync();
 }

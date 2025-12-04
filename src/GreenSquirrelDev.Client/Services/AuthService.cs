@@ -105,6 +105,57 @@ public class AuthService : IAuthService
         _cachedUserProfile = null;
     }
 
+    public async Task<KindleEmailDTO?> GetKindleEmailAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<KindleEmailDTO>>("/api/user/kindle-email");
+            return response?.Success == true ? response.Data : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<KindleEmailDTO?> UpdateKindleEmailAsync(string kindleEmail)
+    {
+        try
+        {
+            var request = new UpdateKindleEmailRequest { KindleEmail = kindleEmail };
+            var content = new StringContent(
+                JsonSerializer.Serialize(request),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient.PutAsync("/api/user/kindle-email", content);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<KindleEmailDTO>>();
+                return result?.Success == true ? result.Data : null;
+            }
+        }
+        catch
+        {
+            // Return null on error
+        }
+
+        return null;
+    }
+
+    public async Task<bool> DeleteKindleEmailAsync()
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync("/api/user/kindle-email");
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public async Task<bool> IsAuthenticatedAsync()
     {
         var principal = await GetClientPrincipalAsync();

@@ -201,3 +201,184 @@ public class UpdateProfileRequest
 {
     public string? DisplayName { get; set; }
 }
+
+public class UserKindleEmailFunction
+{
+    private readonly ILogger<UserKindleEmailFunction> _logger;
+    private readonly IUserRepository _userRepository;
+    private static readonly System.Text.RegularExpressions.Regex KindleEmailRegex =
+        new(@"^[a-zA-Z0-9._%+-]+@kindle\.com$",
+            System.Text.RegularExpressions.RegexOptions.Compiled |
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+    public UserKindleEmailFunction(
+        ILogger<UserKindleEmailFunction> logger,
+        IUserRepository userRepository)
+    {
+        _logger = logger;
+        _userRepository = userRepository;
+    }
+
+    [Function("GetUserKindleEmail")]
+    public async Task<HttpResponseData> GetKindleEmail(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "user/kindle-email")] HttpRequestData req)
+    {
+        try
+        {
+            var (user, errorResponse) = await GetAuthenticatedUserAsync(req);
+            if (user == null) return errorResponse!;
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(new ApiResponse<KindleEmailDTO>
+            {
+                Success = true,
+                Data = new KindleEmailDTO
+                {
+                    KindleEmail = user.KindleEmail,
+                    UpdatedAt = user.KindleEmailUpdatedAt
+                }
+            });
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting Kindle email");
+            return await CreateErrorResponseAsync(req);
+        }
+    }
+
+    [Function("UpdateUserKindleEmail")]
+    public async Task<HttpResponseData> UpdateKindleEmail(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "user/kindle-email")] HttpRequestData req)
+    {
+        try
+        {
+            var (user, errorResponse) = await GetAuthenticatedUserAsync(req);
+            if (user == null) return errorResponse!;
+
+            var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            var updateData = JsonSerializer.Deserialize<UpdateKindleEmailRequest>(requestBody, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (updateData == null || string.IsNullOrWhiteSpace(updateData.KindleEmail))
+            {
+                var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequestResponse.WriteAsJsonAsync(new ApiResponse<string>
+                {
+                    Success = false,
+                    Error = "Kindle email address is required."
+                });
+                return badRequestResponse;
+            }
+
+            if (!KindleEmailRegex.IsMatch(updateData.KindleEmail))
+            {
+                var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequestResponse.WriteAsJsonAsync(new ApiResponse<string>
+                {
+                    Success = false,
+                    Error = "Kindle email must be a valid @kindle.com address."
+                });
+                return badRequestResponse;
+            }
+
+            user.KindleEmail = updateData.KindleEmail.Trim().ToLowerInvariant();
+            user.KindleEmailUpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateUserAsync(user);
+            _logger.LogInformation("Updated Kindle email for user: {UserId}", user.Id);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(new ApiResponse<KindleEmailDTO>
+            {
+                Success = true,
+                Data = new KindleEmailDTO
+                {
+                    KindleEmail = user.KindleEmail,
+                    UpdatedAt = user.KindleEmailUpdatedAt
+                }
+            });
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating Kindle email");
+            return await CreateErrorResponseAsync(req);
+        }
+    }
+
+    [Function("DeleteUserKindleEmail")]
+    public async Task<HttpResponseData> DeleteKindleEmail(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "user/kindle-email")] HttpRequestData req)
+    {
+        try
+        {
+            var (user, errorResponse) = await GetAuthenticatedUserAsync(req);
+            if (user == null) return errorResponse!;
+
+            user.KindleEmail = null;
+            user.KindleEmailUpdatedAt = null;
+
+            await _userRepository.UpdateUserAsync(user);
+            _logger.LogInformation("Deleted Kindle email for user: {UserId}", user.Id);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(new ApiResponse<string>
+            {
+                Success = true,
+                Data = "Kindle email removed successfully."
+            });
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting Kindle email");
+            return await CreateErrorResponseAsync(req);
+        }
+    }
+
+    private async Task<(Shared.Models.User? user, HttpResponseData? errorResponse)> GetAuthenticatedUserAsync(HttpRequestData req)
+    {
+        var userId = req.Headers.TryGetValues("x-ms-client-principal-id", out var userIdValues)
+            ? userIdValues.FirstOrDefault()
+            : null;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            var response = req.CreateResponse(HttpStatusCode.Unauthorized);
+            await response.WriteAsJsonAsync(new ApiResponse<string>
+            {
+                Success = false,
+                Error = "User not authenticated."
+            });
+            return (null, response);
+        }
+
+        var user = await _userRepository.GetUserByGoogleIdAsync(userId);
+        if (user == null)
+        {
+            var response = req.CreateResponse(HttpStatusCode.NotFound);
+            await response.WriteAsJsonAsync(new ApiResponse<string>
+            {
+                Success = false,
+                Error = "User not found. Please complete your profile setup first."
+            });
+            return (null, response);
+        }
+
+        return (user, null);
+    }
+
+    private static async Task<HttpResponseData> CreateErrorResponseAsync(HttpRequestData req)
+    {
+        var response = req.CreateResponse(HttpStatusCode.InternalServerError);
+        await response.WriteAsJsonAsync(new ApiResponse<string>
+        {
+            Success = false,
+            Error = "An error occurred."
+        });
+        return response;
+    }
+}

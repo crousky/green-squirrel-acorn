@@ -22,12 +22,18 @@ var host = new HostBuilder()
         services.Configure<CosmosDbSettings>(configuration.GetSection("CosmosDb"));
         services.Configure<GoogleAuthSettings>(configuration.GetSection("Google"));
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
+        services.Configure<AzureCommSettings>(configuration.GetSection("AzureCommunicationService"));
 
         // Services
         services.AddSingleton<ICosmosDbService, CosmosDbService>();
         services.AddSingleton<IJwtService, JwtService>();
         services.AddSingleton<IGoogleAuthService, GoogleAuthService>();
         services.AddSingleton<IUserRepository, UserRepository>();
+
+        // HiveReader Services
+        services.AddSingleton<IConversionJobRepository, ConversionJobRepository>();
+        services.AddSingleton<IEpubService, EpubService>();
+        services.AddSingleton<IEmailService, EmailService>();
 
         // HTTP Client
         services.AddHttpClient();

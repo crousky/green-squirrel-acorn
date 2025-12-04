@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HiveReader</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <img src="icons/icon48.png" alt="HiveReader" class="logo">
+      <h1>HiveReader</h1>
+    </header>
+
+    <!-- Not Authenticated View -->
+    <div id="auth-required" class="view hidden">
+      <p class="message">Sign in to send articles to your Kindle</p>
+      <button id="sign-in-btn" class="btn btn-primary">
+        Sign in with Google
+      </button>
+    </div>
+
+    <!-- Authenticated View -->
+    <div id="authenticated" class="view hidden">
+      <div id="user-info" class="user-info">
+        <span id="user-email"></span>
+        <button id="sign-out-btn" class="btn-link">Sign out</button>
+      </div>
+
+      <!-- Kindle Email Not Configured -->
+      <div id="kindle-not-configured" class="status-message hidden">
+        <p class="warning">Please configure your Kindle email address first.</p>
+        <a href="https://greensquirrel.dev/account" target="_blank" class="btn btn-secondary">
+          Open Settings
+        </a>
+      </div>
+
+      <!-- Ready to Send -->
+      <div id="ready-to-send" class="hidden">
+        <div id="page-info" class="page-info">
+          <p class="page-title" id="current-page-title"></p>
+          <p class="page-url" id="current-page-url"></p>
+        </div>
+        <button id="send-btn" class="btn btn-primary btn-large">
+          Send to Kindle
+        </button>
+      </div>
+
+      <!-- Sending State -->
+      <div id="sending" class="status-message hidden">
+        <div class="spinner"></div>
+        <p id="sending-status">Processing article...</p>
+      </div>
+
+      <!-- Success State -->
+      <div id="success" class="status-message hidden">
+        <div class="success-icon">&#10003;</div>
+        <p class="success-message">Sent to your Kindle!</p>
+        <p class="success-hint">It should arrive within a few minutes.</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="error" class="status-message hidden">
+        <div class="error-icon">!</div>
+        <p class="error-message" id="error-message">An error occurred.</p>
+        <button id="retry-btn" class="btn btn-secondary">Try Again</button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="view">
+      <div class="spinner"></div>
+      <p>Loading...</p>
+    </div>
+
+    <footer class="footer">
+      <a href="https://greensquirrel.dev/account" target="_blank">Settings</a>
+      <span class="separator">|</span>
+      <a href="https://greensquirrel.dev/help/hivereader" target="_blank">Help</a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

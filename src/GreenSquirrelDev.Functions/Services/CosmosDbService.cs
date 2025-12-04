@@ -26,4 +26,9 @@ public class CosmosDbService : ICosmosDbService
     {
         return _database.GetContainer(_settings.ProjectsContainer);
     }
+
+    public Container GetConversionJobsContainer()
+    {
+        return _database.GetContainer(_settings.ConversionJobsContainer);
+    }
 }

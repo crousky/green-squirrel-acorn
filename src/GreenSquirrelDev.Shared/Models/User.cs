@@ -11,6 +11,11 @@ public class User
     public DateTime LastLoginAt { get; set; } = DateTime.UtcNow;
     public string PartitionKey { get; set; } = "user";
     public List<ExtensionToken> ExtensionTokens { get; set; } = new();
+
+    // HiveReader Kindle settings
+    public string? KindleEmail { get; set; }
+    public DateTime? KindleEmailUpdatedAt { get; set; }
+    public HiveReaderSettings HiveReaderSettings { get; set; } = new();
 }
 
 public class ExtensionToken
@@ -19,4 +24,11 @@ public class ExtensionToken
     public string TokenHash { get; set; } = string.Empty;
     public DateTime IssuedAt { get; set; }
     public DateTime ExpiresAt { get; set; }
+}
+
+public class HiveReaderSettings
+{
+    public bool EmailNotifications { get; set; } = true;
+    public bool IncludeImages { get; set; } = true;
+    public string FontSize { get; set; } = "medium";
 }

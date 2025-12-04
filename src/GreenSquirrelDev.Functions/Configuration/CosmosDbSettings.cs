@@ -6,4 +6,5 @@ public class CosmosDbSettings
     public string DatabaseName { get; set; } = "GreenSquirrelDev";
     public string UsersContainer { get; set; } = "Users";
     public string ProjectsContainer { get; set; } = "Projects";
+    public string ConversionJobsContainer { get; set; } = "ConversionJobs";
 }

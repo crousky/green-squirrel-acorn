@@ -6,4 +6,5 @@ public interface ICosmosDbService
 {
     Container GetUsersContainer();
     Container GetProjectsContainer();
+    Container GetConversionJobsContainer();
 }

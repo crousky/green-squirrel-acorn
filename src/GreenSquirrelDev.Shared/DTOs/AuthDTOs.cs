@@ -54,3 +54,33 @@ public class ApiResponse<T>
     public T? Data { get; set; }
     public string? Error { get; set; }
 }
+
+// HiveReader DTOs
+public class KindleEmailDTO
+{
+    public string? KindleEmail { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+}
+
+public class UpdateKindleEmailRequest
+{
+    public string KindleEmail { get; set; } = string.Empty;
+}
+
+public class HiveReaderProcessRequest
+{
+    public string PageHtml { get; set; } = string.Empty;
+    public string PageTitle { get; set; } = string.Empty;
+    public string PageUrl { get; set; } = string.Empty;
+    public string? Author { get; set; }
+    public string? PublishDate { get; set; }
+}
+
+public class HiveReaderProcessResponse
+{
+    public string Status { get; set; } = string.Empty;
+    public string JobId { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public DateTime? SentAt { get; set; }
+    public string? ErrorCode { get; set; }
+}
