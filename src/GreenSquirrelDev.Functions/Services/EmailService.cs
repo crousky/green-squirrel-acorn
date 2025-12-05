@@ -115,12 +115,12 @@ Sent by HiveReader - greensquirrel.dev",
                     {
                         _logger.LogInformation(
                             "Email sent successfully: MessageId={MessageId}",
-                            result.Id);
+                            emailSendOperation.Id);
 
                         return new EmailResult
                         {
                             Success = true,
-                            MessageId = result.Id
+                            MessageId = emailSendOperation.Id
                         };
                     }
                     else
