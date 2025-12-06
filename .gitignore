@@ -75,3 +75,6 @@ yarn-error.log*
 
 # Blazor WASM output
 wwwroot/service-worker-assets.js
+
+# HiveReader Local Testing
+test-epub/

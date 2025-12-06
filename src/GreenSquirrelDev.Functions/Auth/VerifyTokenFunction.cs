@@ -43,6 +43,29 @@ public class VerifyTokenFunction
             }
 
             var token = authHeader.Substring("Bearer ".Length);
+            
+            // LocalTester Bypass
+            if (token == "LocalTester")
+            {
+                 var localUser = new UserProfileDTO
+                {
+                    Id = "localtester-guid",
+                    Email = "tester@local.dev",
+                    DisplayName = "Local Tester",
+                    ProfilePictureUrl = "https://via.placeholder.com/150",
+                    CreatedAt = DateTime.UtcNow,
+                    LastLoginAt = DateTime.UtcNow
+                };
+
+                var localResponse = req.CreateResponse(HttpStatusCode.OK);
+                await localResponse.WriteAsJsonAsync(new ApiResponse<UserProfileDTO>
+                {
+                    Success = true,
+                    Data = localUser
+                });
+                return localResponse;
+            }
+
             var userId = _jwtService.GetUserIdFromToken(token);
 
             if (string.IsNullOrEmpty(userId))

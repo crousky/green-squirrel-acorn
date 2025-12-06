@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            width: 300px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 16px;
+            border-bottom: 2px solid #27ae60;
+            padding-bottom: 10px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #219150;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #7f8c8d;
+            text-align: center;
+        }
+        .error { color: #e74c3c; }
+        .success { color: #27ae60; }
+        
+        #settings-link {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h2>HiveReader</h2>
+    
+    <div id="auth-section">
+        <p class="status">Not signed in</p>
+        <button id="login-btn">Sign In</button>
+        <button id="local-test-btn" style="background-color: #e67e22;">Local Test Mode</button>
+    </div>
+
+    <div id="main-section" class="hidden">
+        <button id="send-btn">Send to Kindle</button>
+        <div id="status-msg" class="status">Ready to capture</div>
+    </div>
+
+    <div id="settings-link">
+        <a href="#" id="open-settings">Manage Settings</a>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
