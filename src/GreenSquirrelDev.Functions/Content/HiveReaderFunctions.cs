@@ -34,7 +34,7 @@ public class HiveReaderFunctions
     public async Task<HttpResponseData> ProcessArticle(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "hive-reader/process")] HttpRequestData req)
     {
-        _logger.LogInformation("Processing article for HiveReader");
+        _logger.LogInformation("ProcessArticle: Starting article processing for HiveReader");
 
         try
         {
@@ -46,35 +46,56 @@ public class HiveReaderFunctions
             var request = await req.ReadFromJsonAsync<ProcessArticleRequest>();
             if (request == null)
             {
+                _logger.LogWarning("ProcessArticle: Invalid request body received for userId={UserId}", userId);
                 var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
                 await badResponse.WriteAsJsonAsync(new ApiResponse<string> { Success = false, Error = "Invalid request body" });
                 return badResponse;
             }
+
+            _logger.LogInformation("ProcessArticle: Processing article for userId={UserId}, title={Title}, author={Author}, htmlLength={HtmlLength}", 
+                userId, request.PageTitle ?? "null", request.Author ?? "null", request.PageHtml?.Length ?? 0);
 
             // 3. Get User Settings (Kindle Email)
             string kindleEmail = "";
             if (userId == "localtester-guid")
             {
                  kindleEmail = "tester@kindle.com"; // Mock
+                 _logger.LogInformation("ProcessArticle: Using mock Kindle email for local tester");
             }
             else
             {
                 var user = await _userRepository.GetUserByIdAsync(userId);
                 if (user == null || string.IsNullOrEmpty(user.KindleEmail))
                 {
+                     _logger.LogWarning("ProcessArticle: Kindle email not configured for userId={UserId}, user={UserFound}", 
+                         userId, user != null);
                      var errResponse = req.CreateResponse(HttpStatusCode.BadRequest);
                     await errResponse.WriteAsJsonAsync(new ApiResponse<string> { Success = false, Error = "Kindle email not configured." });
                     return errResponse;
                 }
                 kindleEmail = user.KindleEmail;
+                _logger.LogInformation("ProcessArticle: Retrieved Kindle email for userId={UserId}, email={Email}", 
+                    userId, kindleEmail);
             }
 
             // 4. Generate EPUB
             var author = string.IsNullOrEmpty(request.Author) ? "Unknown" : request.Author;
+            _logger.LogInformation("ProcessArticle: Starting EPUB generation for userId={UserId}, title={Title}, author={Author}", 
+                userId, request.PageTitle, author);
+            
             var epubBytes = await _epubService.GenerateEpubAsync(request.PageHtml, request.PageTitle, author);
+            
+            _logger.LogInformation("ProcessArticle: EPUB generated successfully for userId={UserId}, title={Title}, epubSize={EpubSize} bytes", 
+                userId, request.PageTitle, epubBytes.Length);
 
             // 5. Send Email
+            _logger.LogInformation("ProcessArticle: Sending EPUB to Kindle for userId={UserId}, email={Email}, title={Title}", 
+                userId, kindleEmail, request.PageTitle);
+            
             await _emailService.SendEpubToKindleAsync(kindleEmail, request.PageTitle, epubBytes);
+            
+            _logger.LogInformation("ProcessArticle: Successfully sent article to Kindle for userId={UserId}, title={Title}", 
+                userId, request.PageTitle);
 
             // 6. Response
             var successResponse = req.CreateResponse(HttpStatusCode.OK);
@@ -92,7 +113,7 @@ public class HiveReaderFunctions
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing article");
+            _logger.LogError(ex, "ProcessArticle: Error processing article");
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
              await errorResponse.WriteAsJsonAsync(new ApiResponse<string> { Success = false, Error = "Processing failed: " + ex.Message });
             return errorResponse;
@@ -106,17 +127,41 @@ public class HiveReaderFunctions
         var (userId, authResponse) = await ValidateUser(req);
         if (authResponse != null) return authResponse;
 
+        _logger.LogInformation("GetKindleEmail: Retrieving Kindle email for userId={UserId}", userId);
+
         if (userId == "localtester-guid")
         {
+             _logger.LogInformation("GetKindleEmail: Returning mock email for local tester");
              var mockResponse = req.CreateResponse(HttpStatusCode.OK);
             await mockResponse.WriteAsJsonAsync(new ApiResponse<string> { Success = true, Data = "tester@kindle.com" });
             return mockResponse;
         }
 
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        var response = req.CreateResponse(HttpStatusCode.OK);
-        await response.WriteAsJsonAsync(new ApiResponse<string> { Success = true, Data = user?.KindleEmail });
-        return response;
+        try
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            
+            if (user == null)
+            {
+                _logger.LogWarning("GetKindleEmail: User not found for userId={UserId}", userId);
+            }
+            else
+            {
+                _logger.LogInformation("GetKindleEmail: Successfully retrieved Kindle email for userId={UserId}, hasEmail={HasEmail}", 
+                    userId, !string.IsNullOrEmpty(user.KindleEmail));
+            }
+            
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(new ApiResponse<string> { Success = true, Data = user?.KindleEmail });
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GetKindleEmail: Error retrieving Kindle email for userId={UserId}", userId);
+            var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse.WriteAsJsonAsync(new ApiResponse<string> { Success = false, Error = "Failed to retrieve Kindle email" });
+            return errorResponse;
+        }
     }
 
     [Function("UpdateKindleEmail")]
@@ -127,8 +172,14 @@ public class HiveReaderFunctions
         if (authResponse != null) return authResponse;
 
         var request = await req.ReadFromJsonAsync<UpdateKindleEmailRequest>();
+        
+        _logger.LogInformation("UpdateKindleEmail: Starting update for userId={UserId}, newEmail={NewEmail}", 
+            userId, request?.Email ?? "null");
+        
         if (request == null || string.IsNullOrEmpty(request.Email) || !request.Email.EndsWith("@kindle.com"))
         {
+            _logger.LogWarning("UpdateKindleEmail: Invalid email format for userId={UserId}, email={Email}", 
+                userId, request?.Email ?? "null");
             var badReq = req.CreateResponse(HttpStatusCode.BadRequest);
             await badReq.WriteAsJsonAsync(new ApiResponse<string> { Success = false, Error = "Invalid email. Must be @kindle.com" });
             return badReq;
@@ -137,24 +188,44 @@ public class HiveReaderFunctions
         if (userId == "localtester-guid")
         {
              // Mock update
+             _logger.LogInformation("UpdateKindleEmail: Mock update for local tester with email={Email}", request.Email);
              var mockResponse = req.CreateResponse(HttpStatusCode.OK);
             await mockResponse.WriteAsJsonAsync(new ApiResponse<string> { Success = true, Data = "Email updated (LocalTester)" });
             return mockResponse;
         }
 
-        var user = await _userRepository.GetUserByIdAsync(userId);
-        if (user == null)
+        try
         {
-            var notFound = req.CreateResponse(HttpStatusCode.NotFound);
-            return notFound;
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("UpdateKindleEmail: User not found for userId={UserId}", userId);
+                var notFound = req.CreateResponse(HttpStatusCode.NotFound);
+                return notFound;
+            }
+
+            var oldEmail = user.KindleEmail;
+            _logger.LogInformation("UpdateKindleEmail: User found for userId={UserId}, oldEmail={OldEmail}, newEmail={NewEmail}", 
+                userId, oldEmail ?? "null", request.Email);
+
+            user.KindleEmail = request.Email;
+            await _userRepository.UpdateUserAsync(user);
+
+            _logger.LogInformation("UpdateKindleEmail: Successfully updated Kindle email for userId={UserId}, email={Email}", 
+                userId, request.Email);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(new ApiResponse<string> { Success = true, Data = "Kindle email updated" });
+            return response;
         }
-
-        user.KindleEmail = request.Email;
-        await _userRepository.UpdateUserAsync(user);
-
-        var response = req.CreateResponse(HttpStatusCode.OK);
-        await response.WriteAsJsonAsync(new ApiResponse<string> { Success = true, Data = "Kindle email updated" });
-        return response;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "UpdateKindleEmail: Error updating Kindle email for userId={UserId}, email={Email}", 
+                userId, request.Email);
+            var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse.WriteAsJsonAsync(new ApiResponse<string> { Success = false, Error = "Failed to update Kindle email" });
+            return errorResponse;
+        }
     }
 
     private async Task<(string? userId, HttpResponseData? errorResponse)> ValidateUser(HttpRequestData req)

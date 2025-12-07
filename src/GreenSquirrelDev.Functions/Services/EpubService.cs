@@ -23,12 +23,20 @@ public class EpubService : IEpubService
 
     public async Task<byte[]> GenerateEpubAsync(string htmlContent, string title, string author)
     {
-        _logger.LogInformation($"Generating EPUB for {title}");
+        _logger.LogInformation("EpubService: Starting EPUB generation for title={Title}, author={Author}, htmlContentLength={HtmlLength}", 
+            title, author, htmlContent?.Length ?? 0);
         
-        // Clean HTML content - strip out everything except main article content
-        var cleanedHtml = CleanHtmlContent(htmlContent);
-        
-        using (var memoryStream = new MemoryStream())
+        try
+        {
+            // Clean HTML content - strip out everything except main article content
+            var originalLength = htmlContent?.Length ?? 0;
+            var cleanedHtml = CleanHtmlContent(htmlContent);
+            var cleanedLength = cleanedHtml?.Length ?? 0;
+            
+            _logger.LogInformation("EpubService: HTML content cleaned for title={Title}, originalLength={OriginalLength}, cleanedLength={CleanedLength}, reduction={Reduction}%", 
+                title, originalLength, cleanedLength, originalLength > 0 ? (100 - (cleanedLength * 100 / originalLength)) : 0);
+            
+            using (var memoryStream = new MemoryStream())
         {
             using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
             {
@@ -127,7 +135,18 @@ public class EpubService : IEpubService
                    await writer.WriteAsync(xhtml);
                 }
             }
-            return memoryStream.ToArray();
+            
+            var epubBytes = memoryStream.ToArray();
+            _logger.LogInformation("EpubService: Successfully generated EPUB for title={Title}, epubSize={EpubSize} bytes", 
+                title, epubBytes.Length);
+            
+            return epubBytes;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "EpubService: Error generating EPUB for title={Title}, author={Author}", title, author);
+            throw;
         }
     }
 
