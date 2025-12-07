@@ -1,3 +1,4 @@
+using GreenSquirrelDev.Functions.Helpers;
 using GreenSquirrelDev.Shared.Models;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
@@ -16,25 +17,6 @@ public class UserRepository : IUserRepository
         _logger = logger;
     }
 
-    private static string MaskEmail(string? email)
-    {
-        if (string.IsNullOrEmpty(email))
-            return "null";
-        
-        var atIndex = email.IndexOf('@');
-        if (atIndex <= 0)
-            return "***@***";
-        
-        var localPart = email.Substring(0, atIndex);
-        var domain = email.Substring(atIndex);
-        
-        // Show first 2 chars and last char of local part, mask the rest
-        if (localPart.Length <= 3)
-            return $"{localPart[0]}***{domain}";
-        
-        return $"{localPart.Substring(0, 2)}***{localPart[localPart.Length - 1]}{domain}";
-    }
-
     private Container GetContainer()
     {
         return _cosmosDbService.GetUsersContainer();
@@ -47,8 +29,8 @@ public class UserRepository : IUserRepository
         try
         {
             var response = await GetContainer().ReadItemAsync<User>(id, new PartitionKey("user"));
-            _logger.LogInformation("UserRepository: Successfully retrieved user userId={UserId}, email={Email}, hasKindleEmail={HasKindleEmail}", 
-                id, MaskEmail(response.Resource.Email), !string.IsNullOrEmpty(response.Resource.KindleEmail));
+            _logger.LogInformation("UserRepository: Successfully retrieved user userId={UserId}, email={Email}, hasKindleEmail={HasKindleEmail}, requestCharge={RequestCharge} RU", 
+                id, LoggingHelper.MaskEmail(response.Resource.Email), !string.IsNullOrEmpty(response.Resource.KindleEmail), response.RequestCharge);
             return response.Resource;
         }
         catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -96,7 +78,7 @@ public class UserRepository : IUserRepository
     public async Task<User> UpdateUserAsync(User user)
     {
         _logger.LogInformation("UserRepository: Updating user userId={UserId}, email={Email}, kindleEmail={KindleEmail}", 
-            user.Id, MaskEmail(user.Email), MaskEmail(user.KindleEmail));
+            user.Id, LoggingHelper.MaskEmail(user.Email), LoggingHelper.MaskEmail(user.KindleEmail));
         
         try
         {
@@ -111,7 +93,7 @@ public class UserRepository : IUserRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, "UserRepository: Error updating user userId={UserId}, email={Email}", 
-                user.Id, MaskEmail(user.Email));
+                user.Id, LoggingHelper.MaskEmail(user.Email));
             throw;
         }
     }
