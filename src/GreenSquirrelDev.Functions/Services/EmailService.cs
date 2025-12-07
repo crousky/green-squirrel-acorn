@@ -16,10 +16,12 @@ public class EmailService : IEmailService
     private readonly EmailClient? _emailClient;
     private readonly ILogger<EmailService> _logger;
     private readonly string _senderAddress;
+    private readonly IEpubService _epubService;
 
-    public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
+    public EmailService(IConfiguration configuration, ILogger<EmailService> logger, IEpubService epubService)
     {
         _logger = logger;
+        _epubService = epubService;
         _senderAddress = configuration["AzureCommunicationService:SenderAddress"] ?? "noreply@greensquirrel.dev";
         var connectionString = configuration["AzureCommunicationService:ConnectionString"];
         
@@ -54,7 +56,7 @@ public class EmailService : IEmailService
                     Directory.CreateDirectory(directory);
                 }
 
-                var fileName = $"{SanitizeFileName(title)}.epub";
+                var fileName = $"{_epubService.SanitizeFilename(title)}.epub";
                 var filePath = Path.Combine(directory, fileName);
                 
                 await File.WriteAllBytesAsync(filePath, epubContent);
@@ -86,7 +88,7 @@ public class EmailService : IEmailService
                 content: new EmailContent(subject) { Html = htmlContent, PlainText = $"Article: {title}" }
             );
 
-            var attachmentName = $"{SanitizeFileName(title)}.epub";
+            var attachmentName = $"{_epubService.SanitizeFilename(title)}.epub";
             var attachment = new EmailAttachment(
                 attachmentName,
                 "application/epub+zip", 
@@ -103,10 +105,5 @@ public class EmailService : IEmailService
             _logger.LogError(ex, "Failed to send email to Kindle");
             throw;
         }
-    }
-
-    private string SanitizeFileName(string fileName)
-    {
-        return string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
     }
 }

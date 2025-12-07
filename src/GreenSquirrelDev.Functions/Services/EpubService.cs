@@ -1,13 +1,6 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
-// Note: In a real implementation we would use a library like VersOne.Epub or similar.
-// For this task, we will simulate EPUB generation by creating a ZIP file structure or just a dummy file
-// if no library is available. Given I cannot install NuGet packages easily without user input,
-// I will create a basic valid EPUB structure manually using System.IO.Compression if possible,
-// or mock it for now as "implementation detail" to be filled with a library later.
-// However, the instructions imply I should implement it. I'll check if I can use a simple implementation.
-// Update: I will write a simplified EPUB generator that creates a valid OCF container structure.
-
 using System.IO.Compression;
 using System.Xml.Linq;
 
@@ -16,6 +9,7 @@ namespace GreenSquirrelDev.Functions.Services;
 public interface IEpubService
 {
     Task<byte[]> GenerateEpubAsync(string htmlContent, string title, string author);
+    string SanitizeFilename(string filename);
 }
 
 public class EpubService : IEpubService
@@ -30,6 +24,9 @@ public class EpubService : IEpubService
     public async Task<byte[]> GenerateEpubAsync(string htmlContent, string title, string author)
     {
         _logger.LogInformation($"Generating EPUB for {title}");
+        
+        // Clean HTML content - strip out everything except main article content
+        var cleanedHtml = CleanHtmlContent(htmlContent);
         
         using (var memoryStream = new MemoryStream())
         {
@@ -124,7 +121,7 @@ public class EpubService : IEpubService
     <h1>{title}</h1>
     <p><em>By {author}</em></p>
     <hr/>
-    {htmlContent}
+    {cleanedHtml}
 </body>
 </html>";
                    await writer.WriteAsync(xhtml);
@@ -132,5 +129,133 @@ public class EpubService : IEpubService
             }
             return memoryStream.ToArray();
         }
+    }
+
+    private string CleanHtmlContent(string htmlContent)
+    {
+        if (string.IsNullOrWhiteSpace(htmlContent))
+            return string.Empty;
+
+        // Remove script tags and their content
+        htmlContent = Regex.Replace(htmlContent, @"<script[^>]*>.*?</script>", string.Empty, 
+            RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+        // Remove style tags and their content
+        htmlContent = Regex.Replace(htmlContent, @"<style[^>]*>.*?</style>", string.Empty, 
+            RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+        // Remove common non-content elements by class/id patterns
+        var nonContentPatterns = new[]
+        {
+            @"<nav[^>]*>.*?</nav>",
+            @"<header[^>]*>.*?</header>",
+            @"<footer[^>]*>.*?</footer>",
+            @"<aside[^>]*>.*?</aside>",
+            @"<div[^>]*class=[""'][^""']*nav[^""']*[""'][^>]*>.*?</div>",
+            @"<div[^>]*class=[""'][^""']*menu[^""']*[""'][^>]*>.*?</div>",
+            @"<div[^>]*class=[""'][^""']*sidebar[^""']*[""'][^>]*>.*?</div>",
+            @"<div[^>]*class=[""'][^""']*ad[^""']*[""'][^>]*>.*?</div>",
+            @"<div[^>]*class=[""'][^""']*comment[^""']*[""'][^>]*>.*?</div>",
+            @"<div[^>]*class=[""'][^""']*share[^""']*[""'][^>]*>.*?</div>",
+            @"<div[^>]*class=[""'][^""']*social[^""']*[""'][^>]*>.*?</div>",
+            @"<div[^>]*id=[""'][^""']*nav[^""']*[""'][^>]*>.*?</div>",
+            @"<div[^>]*id=[""'][^""']*menu[^""']*[""'][^>]*>.*?</div>",
+            @"<div[^>]*id=[""'][^""']*sidebar[^""']*[""'][^>]*>.*?</div>",
+            @"<div[^>]*id=[""'][^""']*comment[^""']*[""'][^>]*>.*?</div>",
+            @"<iframe[^>]*>.*?</iframe>",
+            @"<noscript[^>]*>.*?</noscript>",
+        };
+
+        foreach (var pattern in nonContentPatterns)
+        {
+            htmlContent = Regex.Replace(htmlContent, pattern, string.Empty, 
+                RegexOptions.Singleline | RegexOptions.IgnoreCase);
+        }
+
+        // Remove inline onclick, onload, etc. event handlers
+        htmlContent = Regex.Replace(htmlContent, @"\s+on\w+\s*=\s*[""'][^""']*[""']", string.Empty, 
+            RegexOptions.IgnoreCase);
+
+        // Clean up attributes from images - keep only src, alt, title, and width/height
+        htmlContent = Regex.Replace(htmlContent, 
+            @"<img([^>]*?)>", 
+            match => CleanImageTag(match.Value), 
+            RegexOptions.IgnoreCase);
+
+        // Remove empty tags
+        htmlContent = Regex.Replace(htmlContent, @"<(\w+)[^>]*>\s*</\1>", string.Empty, 
+            RegexOptions.IgnoreCase);
+
+        // Remove excessive whitespace
+        htmlContent = Regex.Replace(htmlContent, @"\s{2,}", " ");
+        htmlContent = Regex.Replace(htmlContent, @">\s+<", "><");
+
+        return htmlContent.Trim();
+    }
+
+    private string CleanImageTag(string imgTag)
+    {
+        // Extract only essential attributes: src, alt, title, width, height
+        var src = Regex.Match(imgTag, @"src\s*=\s*[""']([^""']*)[""']", RegexOptions.IgnoreCase);
+        var alt = Regex.Match(imgTag, @"alt\s*=\s*[""']([^""']*)[""']", RegexOptions.IgnoreCase);
+        var title = Regex.Match(imgTag, @"title\s*=\s*[""']([^""']*)[""']", RegexOptions.IgnoreCase);
+        var width = Regex.Match(imgTag, @"width\s*=\s*[""']?(\d+)[""']?", RegexOptions.IgnoreCase);
+        var height = Regex.Match(imgTag, @"height\s*=\s*[""']?(\d+)[""']?", RegexOptions.IgnoreCase);
+
+        if (!src.Success)
+            return string.Empty; // No src, skip the image
+
+        // Filter out tracking pixels, ads, and non-article images
+        var srcValue = src.Groups[1].Value.ToLower();
+        if (srcValue.Contains("tracking") || 
+            srcValue.Contains("analytics") || 
+            srcValue.Contains("pixel") ||
+            srcValue.Contains("/ads/") ||
+            srcValue.Contains("ad.") ||
+            (width.Success && int.TryParse(width.Groups[1].Value, out int w) && w < 50) ||
+            (height.Success && int.TryParse(height.Groups[1].Value, out int h) && h < 50))
+        {
+            return string.Empty; // Skip tracking pixels and small images
+        }
+
+        // Rebuild clean image tag
+        var cleanImg = new StringBuilder("<img");
+        cleanImg.Append($" src=\"{src.Groups[1].Value}\"");
+        
+        if (alt.Success)
+            cleanImg.Append($" alt=\"{alt.Groups[1].Value}\"");
+        
+        if (title.Success)
+            cleanImg.Append($" title=\"{title.Groups[1].Value}\"");
+        
+        if (width.Success && int.TryParse(width.Groups[1].Value, out int widthVal) && widthVal >= 50)
+            cleanImg.Append($" width=\"{widthVal}\"");
+        
+        if (height.Success && int.TryParse(height.Groups[1].Value, out int heightVal) && heightVal >= 50)
+            cleanImg.Append($" height=\"{heightVal}\"");
+
+        cleanImg.Append("/>");
+        return cleanImg.ToString();
+    }
+
+    public string SanitizeFilename(string filename)
+    {
+        // Remove non-alphanumeric characters except spaces
+        var sanitized = Regex.Replace(filename, @"[^a-zA-Z0-9\s]", string.Empty);
+        
+        // Replace spaces with underscores
+        sanitized = Regex.Replace(sanitized, @"\s+", "_");
+        
+        // Remove multiple consecutive underscores
+        sanitized = Regex.Replace(sanitized, @"_{2,}", "_");
+        
+        // Trim underscores from start and end
+        sanitized = sanitized.Trim('_');
+        
+        // Limit length
+        if (sanitized.Length > 50)
+            sanitized = sanitized.Substring(0, 50).TrimEnd('_');
+        
+        return string.IsNullOrWhiteSpace(sanitized) ? "article" : sanitized;
     }
 }
