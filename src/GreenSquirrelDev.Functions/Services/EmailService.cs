@@ -35,6 +35,25 @@ public class EmailService : IEmailService
         }
     }
 
+    private static string MaskEmail(string? email)
+    {
+        if (string.IsNullOrEmpty(email))
+            return "null";
+        
+        var atIndex = email.IndexOf('@');
+        if (atIndex <= 0)
+            return "***@***";
+        
+        var localPart = email.Substring(0, atIndex);
+        var domain = email.Substring(atIndex);
+        
+        // Show first 2 chars and last char of local part, mask the rest
+        if (localPart.Length <= 3)
+            return $"{localPart[0]}***{domain}";
+        
+        return $"{localPart.Substring(0, 2)}***{localPart[localPart.Length - 1]}{domain}";
+    }
+
     public async Task SendEpubToKindleAsync(string kindleEmail, string title, string epubPath)
     {
         var bytes = await File.ReadAllBytesAsync(epubPath);
@@ -44,12 +63,12 @@ public class EmailService : IEmailService
     public async Task SendEpubToKindleAsync(string kindleEmail, string title, byte[] epubContent)
     {
         _logger.LogInformation("EmailService: Starting email send to kindleEmail={KindleEmail}, title={Title}, epubSize={EpubSize} bytes", 
-            kindleEmail, title, epubContent?.Length ?? 0);
+            MaskEmail(kindleEmail), title, epubContent?.Length ?? 0);
         
         if (_emailClient == null)
         {
             _logger.LogInformation("EmailService: [SIMULATION MODE] Sending email to {KindleEmail} with attachment {Title}.epub", 
-                kindleEmail, title);
+                MaskEmail(kindleEmail), title);
             
             // Save to test-epub folder
             try 
@@ -89,7 +108,7 @@ public class EmailService : IEmailService
                 </html>";
 
             _logger.LogInformation("EmailService: Creating email message with sender={Sender}, recipient={Recipient}, subject={Subject}", 
-                _senderAddress, kindleEmail, subject);
+                MaskEmail(_senderAddress), MaskEmail(kindleEmail), subject);
 
             var emailMessage = new EmailMessage(
                 senderAddress: _senderAddress,
@@ -109,16 +128,16 @@ public class EmailService : IEmailService
             _logger.LogInformation("EmailService: Email message created with attachment={AttachmentName}, attachmentSize={AttachmentSize} bytes", 
                 attachmentName, epubContent.Length);
 
-            _logger.LogInformation("EmailService: Sending email via Azure Communication Service to {KindleEmail}", kindleEmail);
+            _logger.LogInformation("EmailService: Sending email via Azure Communication Service to {KindleEmail}", MaskEmail(kindleEmail));
             EmailSendOperation emailSendOperation = await _emailClient.SendAsync(WaitUntil.Started, emailMessage);
             
             _logger.LogInformation("EmailService: Email sent successfully. OperationId={OperationId}, recipient={Recipient}, title={Title}", 
-                emailSendOperation.Id, kindleEmail, title);
+                emailSendOperation.Id, MaskEmail(kindleEmail), title);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "EmailService: Failed to send email to Kindle. recipient={KindleEmail}, title={Title}, epubSize={EpubSize}", 
-                kindleEmail, title, epubContent?.Length ?? 0);
+                MaskEmail(kindleEmail), title, epubContent?.Length ?? 0);
             throw;
         }
     }

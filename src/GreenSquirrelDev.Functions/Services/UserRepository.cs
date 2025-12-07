@@ -16,6 +16,25 @@ public class UserRepository : IUserRepository
         _logger = logger;
     }
 
+    private static string MaskEmail(string? email)
+    {
+        if (string.IsNullOrEmpty(email))
+            return "null";
+        
+        var atIndex = email.IndexOf('@');
+        if (atIndex <= 0)
+            return "***@***";
+        
+        var localPart = email.Substring(0, atIndex);
+        var domain = email.Substring(atIndex);
+        
+        // Show first 2 chars and last char of local part, mask the rest
+        if (localPart.Length <= 3)
+            return $"{localPart[0]}***{domain}";
+        
+        return $"{localPart.Substring(0, 2)}***{localPart[localPart.Length - 1]}{domain}";
+    }
+
     private Container GetContainer()
     {
         return _cosmosDbService.GetUsersContainer();
@@ -29,7 +48,7 @@ public class UserRepository : IUserRepository
         {
             var response = await GetContainer().ReadItemAsync<User>(id, new PartitionKey("user"));
             _logger.LogInformation("UserRepository: Successfully retrieved user userId={UserId}, email={Email}, hasKindleEmail={HasKindleEmail}", 
-                id, response.Resource.Email, !string.IsNullOrEmpty(response.Resource.KindleEmail));
+                id, MaskEmail(response.Resource.Email), !string.IsNullOrEmpty(response.Resource.KindleEmail));
             return response.Resource;
         }
         catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -77,7 +96,7 @@ public class UserRepository : IUserRepository
     public async Task<User> UpdateUserAsync(User user)
     {
         _logger.LogInformation("UserRepository: Updating user userId={UserId}, email={Email}, kindleEmail={KindleEmail}", 
-            user.Id, user.Email, user.KindleEmail ?? "null");
+            user.Id, MaskEmail(user.Email), MaskEmail(user.KindleEmail));
         
         try
         {
@@ -92,7 +111,7 @@ public class UserRepository : IUserRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, "UserRepository: Error updating user userId={UserId}, email={Email}", 
-                user.Id, user.Email);
+                user.Id, MaskEmail(user.Email));
             throw;
         }
     }
