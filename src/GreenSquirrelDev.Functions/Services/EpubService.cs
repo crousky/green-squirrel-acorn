@@ -32,9 +32,11 @@ public class EpubService : IEpubService
             var originalLength = htmlContent?.Length ?? 0;
             var cleanedHtml = CleanHtmlContent(htmlContent);
             var cleanedLength = cleanedHtml?.Length ?? 0;
+            var reductionPercent = originalLength > 0 ? (100 - (cleanedLength * 100 / originalLength)) : 0;
             
-            _logger.LogInformation("EpubService: HTML content cleaned for title={Title}, originalLength={OriginalLength}, cleanedLength={CleanedLength}, reduction={Reduction}%", 
-                title, originalLength, cleanedLength, originalLength > 0 ? (100 - (cleanedLength * 100 / originalLength)) : 0);
+            _logger.LogInformation(
+                "EpubService: HTML content cleaned for title={Title}, originalLength={OriginalLength}, cleanedLength={CleanedLength}, reduction={Reduction}%", 
+                title, originalLength, cleanedLength, reductionPercent);
             
             using (var memoryStream = new MemoryStream())
         {

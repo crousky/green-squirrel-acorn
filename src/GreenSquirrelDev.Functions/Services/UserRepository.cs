@@ -29,7 +29,8 @@ public class UserRepository : IUserRepository
         try
         {
             var response = await GetContainer().ReadItemAsync<User>(id, new PartitionKey("user"));
-            _logger.LogInformation("UserRepository: Successfully retrieved user userId={UserId}, email={Email}, hasKindleEmail={HasKindleEmail}, requestCharge={RequestCharge} RU", 
+            _logger.LogInformation(
+                "UserRepository: Successfully retrieved user userId={UserId}, email={Email}, hasKindleEmail={HasKindleEmail}, requestCharge={RequestCharge} RU", 
                 id, LoggingHelper.MaskEmail(response.Resource.Email), !string.IsNullOrEmpty(response.Resource.KindleEmail), response.RequestCharge);
             return response.Resource;
         }
