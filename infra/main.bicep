@@ -79,7 +79,6 @@ module staticWebApp 'static-web-app.bicep' = {
   }
   dependsOn: [
     cosmosDb
-    appInsights
   ]
 }
 

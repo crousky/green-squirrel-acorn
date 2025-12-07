@@ -7,9 +7,6 @@ param location string = resourceGroup().location
 @description('The name of the database')
 param databaseName string = 'GreenSquirrelDev'
 
-@description('The throughput for containers (RU/s)')
-param containerThroughput int = 400
-
 @description('Tags to apply to resources')
 param tags object = {}
 
