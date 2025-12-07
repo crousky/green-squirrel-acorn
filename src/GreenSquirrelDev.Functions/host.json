@@ -6,7 +6,16 @@
         "isEnabled": true,
         "maxTelemetryItemsPerSecond": 20,
         "excludedTypes": "Request"
-      }
+      },
+      "enableLiveMetrics": true,
+      "enableDependencyTracking": true
+    },
+    "logLevel": {
+      "default": "Information",
+      "GreenSquirrelDev.Functions.Content.HiveReaderFunctions": "Information",
+      "GreenSquirrelDev.Functions.Services.EmailService": "Information",
+      "GreenSquirrelDev.Functions.Services.EpubService": "Information",
+      "GreenSquirrelDev.Functions.Services.UserRepository": "Information"
     }
   },
   "extensions": {
