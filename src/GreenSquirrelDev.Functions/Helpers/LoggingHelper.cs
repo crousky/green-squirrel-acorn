@@ -21,13 +21,13 @@ public static class LoggingHelper
         if (atIndex <= 0)
             return "***@***";
         
-        var localPart = email.Substring(0, atIndex);
-        var domain = email.Substring(atIndex);
+        var localPart = email[..atIndex];
+        var domain = email[atIndex..];
         
         // Show first 2 chars and last char of local part, mask the rest
         if (localPart.Length <= 3)
             return $"{localPart[0]}***{domain}";
         
-        return $"{localPart.Substring(0, 2)}***{localPart[localPart.Length - 1]}{domain}";
+        return $"{localPart[..2]}***{localPart[^1]}{domain}";
     }
 }

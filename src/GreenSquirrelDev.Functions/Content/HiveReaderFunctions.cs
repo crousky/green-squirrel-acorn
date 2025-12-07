@@ -222,7 +222,7 @@ public class HiveReaderFunctions
         catch (Exception ex)
         {
             _logger.LogError(ex, "UpdateKindleEmail: Error updating Kindle email for userId={UserId}, email={Email}", 
-                userId, LoggingHelper.MaskEmail(request.Email));
+                userId, LoggingHelper.MaskEmail(request?.Email));
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
             await errorResponse.WriteAsJsonAsync(new ApiResponse<string> { Success = false, Error = "Failed to update Kindle email" });
             return errorResponse;
