@@ -3,10 +3,8 @@
     "configurations": [
         {
             "name": "Launch Blazor Client",
-            "type": "blazorwasm",
+            "type": "msedge",
             "request": "launch",
-            "cwd": "${workspaceFolder}/src/GreenSquirrelDev.Client",
-            "browser": "edge",
             "url": "https://localhost:5001",
             "webRoot": "${workspaceFolder}/src/GreenSquirrelDev.Client",
             "timeout": 120000,
@@ -25,8 +23,8 @@
                 "7071"
             ],
             "cwd": "${workspaceFolder}/src/GreenSquirrelDev.Functions",
-            "stopAtEntry": false,
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "stopAtEntry": false
         },
         {
             "name": "Attach to Azure Functions",

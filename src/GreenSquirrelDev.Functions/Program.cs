@@ -28,6 +28,8 @@ var host = new HostBuilder()
         services.AddSingleton<IJwtService, JwtService>();
         services.AddSingleton<IGoogleAuthService, GoogleAuthService>();
         services.AddSingleton<IUserRepository, UserRepository>();
+        services.AddSingleton<IEmailService, EmailService>();
+        services.AddSingleton<IEpubService, EpubService>();
 
         // HTTP Client
         services.AddHttpClient();

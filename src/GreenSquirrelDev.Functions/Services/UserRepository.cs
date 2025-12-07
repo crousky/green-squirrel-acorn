@@ -6,18 +6,23 @@ namespace GreenSquirrelDev.Functions.Services;
 
 public class UserRepository : IUserRepository
 {
-    private readonly Container _container;
+    private readonly ICosmosDbService _cosmosDbService;
 
     public UserRepository(ICosmosDbService cosmosDbService)
     {
-        _container = cosmosDbService.GetUsersContainer();
+        _cosmosDbService = cosmosDbService;
+    }
+
+    private Container GetContainer()
+    {
+        return _cosmosDbService.GetUsersContainer();
     }
 
     public async Task<User?> GetUserByIdAsync(string id)
     {
         try
         {
-            var response = await _container.ReadItemAsync<User>(id, new PartitionKey("user"));
+            var response = await GetContainer().ReadItemAsync<User>(id, new PartitionKey("user"));
             return response.Resource;
         }
         catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -32,7 +37,7 @@ public class UserRepository : IUserRepository
             "SELECT * FROM c WHERE c.googleUserId = @googleUserId")
             .WithParameter("@googleUserId", googleUserId);
 
-        var iterator = _container.GetItemQueryIterator<User>(query);
+        var iterator = GetContainer().GetItemQueryIterator<User>(query);
 
         while (iterator.HasMoreResults)
         {
@@ -52,19 +57,19 @@ public class UserRepository : IUserRepository
         user.LastLoginAt = DateTime.UtcNow;
         user.PartitionKey = "user";
 
-        var response = await _container.CreateItemAsync(user, new PartitionKey(user.PartitionKey));
+        var response = await GetContainer().CreateItemAsync(user, new PartitionKey(user.PartitionKey));
         return response.Resource;
     }
 
     public async Task<User> UpdateUserAsync(User user)
     {
         user.LastLoginAt = DateTime.UtcNow;
-        var response = await _container.ReplaceItemAsync(user, user.Id, new PartitionKey(user.PartitionKey));
+        var response = await GetContainer().ReplaceItemAsync(user, user.Id, new PartitionKey(user.PartitionKey));
         return response.Resource;
     }
 
     public async Task DeleteUserAsync(string id)
     {
-        await _container.DeleteItemAsync<User>(id, new PartitionKey("user"));
+        await GetContainer().DeleteItemAsync<User>(id, new PartitionKey("user"));
     }
 }

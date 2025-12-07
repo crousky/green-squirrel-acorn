@@ -13,17 +13,22 @@ public class CosmosDbService : ICosmosDbService
     public CosmosDbService(IOptions<CosmosDbSettings> settings)
     {
         _settings = settings.Value;
-        _cosmosClient = new CosmosClient(_settings.ConnectionString);
-        _database = _cosmosClient.GetDatabase(_settings.DatabaseName);
+        if (!string.IsNullOrEmpty(_settings.ConnectionString) && _settings.ConnectionString != "Mock")
+        {
+            _cosmosClient = new CosmosClient(_settings.ConnectionString);
+            _database = _cosmosClient.GetDatabase(_settings.DatabaseName);
+        }
     }
 
     public Container GetUsersContainer()
     {
+        if (_database == null) throw new InvalidOperationException("CosmosDB is not configured.");
         return _database.GetContainer(_settings.UsersContainer);
     }
 
     public Container GetProjectsContainer()
     {
+        if (_database == null) throw new InvalidOperationException("CosmosDB is not configured.");
         return _database.GetContainer(_settings.ProjectsContainer);
     }
 }
