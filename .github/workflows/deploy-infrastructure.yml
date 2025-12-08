@@ -37,9 +37,9 @@ jobs:
             --resource-group rg-green-squirrel \
             --template-file infra/main.bicep \
             --parameters infra/main.bicepparam \
-            --parameters googleClientId='${{ secrets.GOOGLE_CLIENT_ID }}' \
-            --parameters googleClientSecret='${{ secrets.GOOGLE_CLIENT_SECRET }}' \
-            --parameters jwtSecret='${{ secrets.JWT_SECRET }}' \
+            --parameters googleClientId="$GOOGLE_CLIENT_ID" \
+            --parameters googleClientSecret="$GOOGLE_CLIENT_SECRET" \
+            --parameters jwtSecret="$JWT_SECRET" \
             --verbose
       
       - name: Get Deployment Outputs
