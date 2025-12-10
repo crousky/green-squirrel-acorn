@@ -7,9 +7,6 @@ param jwtIssuer string = 'https://greensquirrel.dev'
 @description('JWT Audience URL')
 param jwtAudience string = 'https://greensquirrel.dev'
 
-@description('Object ID of the service principal that needs Key Vault access (optional)')
-param keyVaultAccessPrincipalId string = ''
-
 // Variables - using existing resource naming convention
 var cosmosDbAccountName = 'green-squirrel-cosmos'
 var staticWebAppName = 'green-squirrel-site'
@@ -29,7 +26,6 @@ module keyVault 'key-vault.bicep' = {
     keyVaultName: keyVaultName
     location: location
     tags: tags
-    principalId: keyVaultAccessPrincipalId
   }
 }
 
@@ -95,6 +91,9 @@ output appInsightsConnectionString string = appInsights.outputs.connectionString
 
 @description('The Key Vault name')
 output keyVaultName string = keyVault.outputs.keyVaultName
+
+@description('The Static Web App managed identity principal ID')
+output staticWebAppPrincipalId string = staticWebApp.outputs.principalId
 
 @description('The resource group name')
 output resourceGroupName string = resourceGroup().name

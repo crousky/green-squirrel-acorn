@@ -16,7 +16,42 @@ az deployment group show \
   --output tsv
 ```
 
-## Step 2: Set Required Secrets
+## Step 2: Grant Key Vault Access to Static Web App
+
+The Static Web App needs permission to read secrets from Key Vault. Get the principal ID from the deployment output and grant access:
+
+```bash
+# Get the Static Web App's principal ID
+PRINCIPAL_ID=$(az deployment group show \
+  --resource-group rg-green-squirrel \
+  --name main \
+  --query properties.outputs.staticWebAppPrincipalId.value \
+  --output tsv)
+
+# Get the Key Vault resource ID
+KV_ID=$(az keyvault show \
+  --name "$KV_NAME" \
+  --resource-group rg-green-squirrel \
+  --query id \
+  --output tsv)
+
+# Grant Key Vault Secrets User role
+az role assignment create \
+  --role "Key Vault Secrets User" \
+  --assignee "$PRINCIPAL_ID" \
+  --scope "$KV_ID"
+```
+
+**Or using Azure Portal:**
+1. Go to your Key Vault → **Access control (IAM)**
+2. Click **+ Add** → **Add role assignment**
+3. Select **Key Vault Secrets User** role
+4. Click **Next**
+5. Click **+ Select members**
+6. Search for `green-squirrel-site` (your Static Web App name)
+7. Click **Select** → **Review + assign**
+
+## Step 3: Set Required Secrets
 
 ### Option A: Azure Portal (Easiest)
 
@@ -43,7 +78,7 @@ az keyvault secret set --vault-name "$KV_NAME" --name "google-client-secret" --v
 az keyvault secret set --vault-name "$KV_NAME" --name "jwt-secret" --value "YOUR_VALUE"
 ```
 
-## Step 3: Generate a Secure JWT Secret
+## Step 4: Generate a Secure JWT Secret
 
 ### PowerShell
 ```powershell
@@ -58,7 +93,7 @@ openssl rand -base64 48
 ### Online (Not Recommended for Production)
 Use a password generator to create a 64+ character random string.
 
-## Step 4: Verify Setup
+## Step 5: Verify Setup
 
 Check that all secrets are set:
 
@@ -74,7 +109,7 @@ You should see:
 - ✓ google-client-secret
 - ✓ jwt-secret
 
-## Step 5: Restart Static Web App (if needed)
+## Step 6: Restart Static Web App (if needed)
 
 If the app was already deployed, you may need to restart it for the changes to take effect:
 
@@ -107,7 +142,14 @@ You need **Key Vault Secrets Officer** role or **Contributor** access to the Key
 
 1. Verify all three secrets are set correctly
 2. Check secret names match exactly (case-sensitive)
-3. Verify the Static Web App has the **Key Vault Secrets User** role
+3. **Verify the Static Web App has the Key Vault Secrets User role:**
+   ```bash
+   az role assignment list \
+     --assignee "$PRINCIPAL_ID" \
+     --scope "$KV_ID" \
+     --query "[].{Role:roleDefinitionName, Scope:scope}" \
+     --output table
+   ```
 4. Restart the Static Web App
 
 ### How to view/update a secret

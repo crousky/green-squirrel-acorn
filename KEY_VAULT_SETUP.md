@@ -135,3 +135,18 @@ If you get access denied errors:
 Key Vault names must be 3-24 characters. If you encounter issues:
 1. The generated name should always fit this constraint
 2. Check for any custom naming overrides that might be too long
+
+### Authorization Failed for Role Assignment
+
+If you see: `The client does not have permission to perform action 'Microsoft.Authorization/roleAssignments/write'`
+
+**Solution**: Role assignments must be created manually after deployment. The deployment service principal doesn't need elevated permissions. After deployment completes:
+
+```bash
+# Get the required IDs from deployment output
+PRINCIPAL_ID=$(az deployment group show --resource-group rg-green-squirrel --name main --query properties.outputs.staticWebAppPrincipalId.value --output tsv)
+KV_ID=$(az keyvault show --name <keyvault-name> --resource-group rg-green-squirrel --query id --output tsv)
+
+# Grant access
+az role assignment create --role "Key Vault Secrets User" --assignee "$PRINCIPAL_ID" --scope "$KV_ID"
+```

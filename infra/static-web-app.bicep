@@ -60,22 +60,6 @@ resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
   }
 }
 
-// Reference to Key Vault for secrets
-resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
-  name: keyVaultName
-}
-
-// Grant Static Web App access to Key Vault secrets
-resource keyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(keyVault.id, staticWebApp.id, 'Key Vault Secrets User')
-  scope: keyVault
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6') // Key Vault Secrets User
-    principalId: staticWebApp.identity.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
 // App Settings for the Static Web App
 resource staticWebAppSettings 'Microsoft.Web/staticSites/config@2023-12-01' = {
   parent: staticWebApp
@@ -104,3 +88,6 @@ output resourceId string = staticWebApp.id
 
 @description('The Static Web App name')
 output name string = staticWebApp.name
+
+@description('The Static Web App managed identity principal ID')
+output principalId string = staticWebApp.identity.principalId

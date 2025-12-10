@@ -10,9 +10,6 @@ param tenantId string = subscription().tenantId
 @description('Tags for the Key Vault')
 param tags object = {}
 
-@description('Object ID of the user/service principal that needs access to the Key Vault')
-param principalId string = ''
-
 @description('Enable public network access')
 param publicNetworkAccess string = 'Enabled'
 
@@ -32,17 +29,6 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
       defaultAction: 'Allow'
       bypass: 'AzureServices'
     }
-  }
-}
-
-// Grant Key Vault Secrets User role to the principal if provided
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(principalId)) {
-  name: guid(keyVault.id, principalId, 'Key Vault Secrets User')
-  scope: keyVault
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6') // Key Vault Secrets User
-    principalId: principalId
-    principalType: 'ServicePrincipal'
   }
 }
 

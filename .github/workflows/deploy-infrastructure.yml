@@ -33,14 +33,10 @@ jobs:
       - name: Deploy Infrastructure
         id: deploy
         run: |
-          # Get the object ID of the current service principal for Key Vault access
-          SP_OBJECT_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id --output tsv)
-          
           az deployment group create \
             --resource-group rg-green-squirrel \
             --template-file infra/main.bicep \
             --parameters infra/main.bicepparam \
-            --parameters keyVaultAccessPrincipalId="$SP_OBJECT_ID" \
             --verbose
       
       - name: Get Deployment Outputs
@@ -64,11 +60,24 @@ jobs:
             --query properties.outputs.keyVaultName.value \
             --output tsv)
           
+          PRINCIPAL_ID=$(az deployment group show \
+            --resource-group rg-green-squirrel \
+            --name main \
+            --query properties.outputs.staticWebAppPrincipalId.value \
+            --output tsv)
+          
           echo "Static Web App Hostname: $HOSTNAME"
           echo "Application Insights configured: ${APPINSIGHTS:0:50}..."
           echo "Key Vault Name: $KV_NAME"
+          echo "Static Web App Principal ID: $PRINCIPAL_ID"
+          echo ""
+          echo "Next steps:"
+          echo "1. Grant Key Vault access: az role assignment create --role 'Key Vault Secrets User' --assignee $PRINCIPAL_ID --scope $(az keyvault show -n $KV_NAME -g rg-green-squirrel --query id -o tsv)"
+          echo "2. Set secrets in Key Vault: $KV_NAME"
+          echo ""
           echo "::notice title=Deployment Complete::Visit https://$HOSTNAME to view your app"
-          echo "::notice title=Key Vault::Set secrets manually in Key Vault: $KV_NAME"
+          echo "::notice title=Key Vault::Set secrets in Key Vault: $KV_NAME"
+          echo "::notice title=Required Action::Grant Key Vault access to Static Web App (Principal ID: $PRINCIPAL_ID)"
       
       - name: Azure Logout
         if: always()
