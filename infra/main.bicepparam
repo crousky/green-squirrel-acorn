@@ -1,7 +1,7 @@
 using './main.bicep'
 
 // Location configuration
-param location = 'centralus'
+param location = 'eastus2'
 
 // JWT configuration
 param jwtIssuer = 'https://greensquirrel.dev'

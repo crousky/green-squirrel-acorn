@@ -63,7 +63,7 @@ az cosmosdb create \
   --resource-group rg-green-squirrel \
   --default-consistency-level Session \
   --enable-automatic-failover false \
-  --locations regionName=centralus
+  --locations regionName=eastus2
 ```
 
 #### 1.2 Create Cosmos DB Database and Containers
