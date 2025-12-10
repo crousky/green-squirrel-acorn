@@ -66,7 +66,7 @@ module staticWebApp 'static-web-app.bicep' = {
   params: {
     staticWebAppName: staticWebAppName
     location: location
-    sku: 'Free'
+    sku: 'Standard'
     tags: tags
     cosmosDbConnectionString: cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString
     cosmosDbDatabaseName: 'GreenSquirrelDev'
