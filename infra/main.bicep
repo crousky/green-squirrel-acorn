@@ -1,3 +1,5 @@
+param environment string = 'prod'
+
 @description('The location for all resources')
 param location string = resourceGroup().location
 
@@ -12,7 +14,7 @@ var cosmosDbAccountName = 'green-squirrel-cosmos'
 var staticWebAppName = 'green-squirrel-site'
 var appInsightsName = 'green-squirrel-insights'
 var logAnalyticsName = 'green-squirrel-logs'
-var keyVaultName = 'kv-green-squirrel-${uniqueString(resourceGroup().id)}'
+var keyVaultName = 'kv-grnsqrl-${environment}'
 
 var tags = {
   project: 'green-squirrel-dev'
