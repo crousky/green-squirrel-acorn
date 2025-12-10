@@ -3,11 +3,9 @@ using './main.bicep'
 // Location configuration
 param location = 'centralus'
 
-// Google OAuth credentials (replace with actual values or use Key Vault references)
-param googleClientId = '' // Set via Azure CLI or pipeline variable
-param googleClientSecret = '' // Set via Azure CLI or pipeline variable
-
-// JWT configuration (replace with actual value or use Key Vault reference)
-param jwtSecret = '' // Set via Azure CLI or pipeline variable (min 32 characters)
+// JWT configuration
 param jwtIssuer = 'https://greensquirrel.dev'
 param jwtAudience = 'https://greensquirrel.dev'
+
+// Key Vault access (set via pipeline)
+// param keyVaultAccessPrincipalId = '' // Service principal object ID for Key Vault access

@@ -33,13 +33,14 @@ jobs:
       - name: Deploy Infrastructure
         id: deploy
         run: |
+          # Get the object ID of the current service principal for Key Vault access
+          SP_OBJECT_ID=$(az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} --query id --output tsv)
+          
           az deployment group create \
             --resource-group rg-green-squirrel \
             --template-file infra/main.bicep \
             --parameters infra/main.bicepparam \
-            --parameters googleClientId="$GOOGLE_CLIENT_ID" \
-            --parameters googleClientSecret="$GOOGLE_CLIENT_SECRET" \
-            --parameters jwtSecret="$JWT_SECRET" \
+            --parameters keyVaultAccessPrincipalId="$SP_OBJECT_ID" \
             --verbose
       
       - name: Get Deployment Outputs
@@ -57,9 +58,17 @@ jobs:
             --query properties.outputs.appInsightsConnectionString.value \
             --output tsv)
           
+          KV_NAME=$(az deployment group show \
+            --resource-group rg-green-squirrel \
+            --name main \
+            --query properties.outputs.keyVaultName.value \
+            --output tsv)
+          
           echo "Static Web App Hostname: $HOSTNAME"
           echo "Application Insights configured: ${APPINSIGHTS:0:50}..."
+          echo "Key Vault Name: $KV_NAME"
           echo "::notice title=Deployment Complete::Visit https://$HOSTNAME to view your app"
+          echo "::notice title=Key Vault::Set secrets manually in Key Vault: $KV_NAME"
       
       - name: Azure Logout
         if: always()

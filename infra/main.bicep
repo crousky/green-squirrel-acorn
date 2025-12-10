@@ -1,34 +1,36 @@
 @description('The location for all resources')
 param location string = resourceGroup().location
 
-@description('Google OAuth Client ID')
-@secure()
-param googleClientId string
-
-@description('Google OAuth Client Secret')
-@secure()
-param googleClientSecret string
-
-@description('JWT Secret for token signing (min 32 characters)')
-@secure()
-@minLength(32)
-param jwtSecret string
-
 @description('JWT Issuer URL')
 param jwtIssuer string = 'https://greensquirrel.dev'
 
 @description('JWT Audience URL')
 param jwtAudience string = 'https://greensquirrel.dev'
 
+@description('Object ID of the service principal that needs Key Vault access (optional)')
+param keyVaultAccessPrincipalId string = ''
+
 // Variables - using existing resource naming convention
 var cosmosDbAccountName = 'green-squirrel-cosmos'
 var staticWebAppName = 'green-squirrel-site'
 var appInsightsName = 'green-squirrel-insights'
 var logAnalyticsName = 'green-squirrel-logs'
+var keyVaultName = 'kv-green-squirrel-${uniqueString(resourceGroup().id)}'
 
 var tags = {
   project: 'green-squirrel-dev'
   managedBy: 'bicep'
+}
+
+// Key Vault Module
+module keyVault 'key-vault.bicep' = {
+  name: 'keyVault-${uniqueString(resourceGroup().id)}'
+  params: {
+    keyVaultName: keyVaultName
+    location: location
+    tags: tags
+    principalId: keyVaultAccessPrincipalId
+  }
 }
 
 // Application Insights Module
@@ -70,15 +72,14 @@ module staticWebApp 'static-web-app.bicep' = {
     tags: tags
     cosmosDbConnectionString: cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString
     cosmosDbDatabaseName: 'GreenSquirrelDev'
-    googleClientId: googleClientId
-    googleClientSecret: googleClientSecret
-    jwtSecret: jwtSecret
+    keyVaultName: keyVaultName
     jwtIssuer: jwtIssuer
     jwtAudience: jwtAudience
     appInsightsConnectionString: appInsights.outputs.connectionString
   }
   dependsOn: [
     cosmosDb
+    keyVault
   ]
 }
 
@@ -92,13 +93,20 @@ output cosmosDbEndpoint string = cosmosDb.outputs.endpoint
 @description('The Application Insights connection string')
 output appInsightsConnectionString string = appInsights.outputs.connectionString
 
+@description('The Key Vault name')
+output keyVaultName string = keyVault.outputs.keyVaultName
+
 @description('The resource group name')
 output resourceGroupName string = resourceGroup().name
 
 @description('Deployment instructions')
 output deploymentInstructions string = '''
 Deployment complete! Next steps:
-1. Configure your GitHub repository to deploy to: ${staticWebApp.outputs.defaultHostname}
-2. Update Google OAuth redirect URIs to include: https://${staticWebApp.outputs.defaultHostname}/.auth/login/google/callback
-3. Verify the application by visiting: https://${staticWebApp.outputs.defaultHostname}
+1. Store secrets in Key Vault (${keyVault.outputs.keyVaultName}):
+   - google-client-id
+   - google-client-secret
+   - jwt-secret (min 32 characters)
+2. Configure your GitHub repository to deploy to: ${staticWebApp.outputs.defaultHostname}
+3. Update Google OAuth redirect URIs to include: https://${staticWebApp.outputs.defaultHostname}/.auth/login/google/callback
+4. Verify the application by visiting: https://${staticWebApp.outputs.defaultHostname}
 '''

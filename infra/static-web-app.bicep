@@ -21,17 +21,8 @@ param cosmosDbConnectionString string = ''
 @description('The Cosmos DB database name')
 param cosmosDbDatabaseName string = 'GreenSquirrelDev'
 
-@description('Google OAuth Client ID')
-@secure()
-param googleClientId string = ''
-
-@description('Google OAuth Client Secret')
-@secure()
-param googleClientSecret string = ''
-
-@description('JWT Secret for token signing')
-@secure()
-param jwtSecret string = ''
+@description('Key Vault name for secret references')
+param keyVaultName string
 
 @description('JWT Issuer')
 param jwtIssuer string = 'https://greensquirrel.dev'
@@ -55,6 +46,9 @@ resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
     name: sku
     tier: sku
   }
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     stagingEnvironmentPolicy: 'Enabled'
     allowConfigFileUpdates: true
@@ -63,6 +57,22 @@ resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
       apiLocation: '/src/GreenSquirrelDev.Functions'
       outputLocation: 'wwwroot'
     }
+  }
+}
+
+// Reference to Key Vault for secrets
+resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
+  name: keyVaultName
+}
+
+// Grant Static Web App access to Key Vault secrets
+resource keyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(keyVault.id, staticWebApp.id, 'Key Vault Secrets User')
+  scope: keyVault
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6') // Key Vault Secrets User
+    principalId: staticWebApp.identity.principalId
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -75,9 +85,9 @@ resource staticWebAppSettings 'Microsoft.Web/staticSites/config@2023-12-01' = {
     CosmosDb__DatabaseName: cosmosDbDatabaseName
     CosmosDb__UsersContainer: 'Users'
     CosmosDb__ProjectsContainer: 'Projects'
-    Google__ClientId: googleClientId
-    Google__ClientSecret: googleClientSecret
-    Jwt__Secret: jwtSecret
+    Google__ClientId: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=google-client-id)'
+    Google__ClientSecret: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=google-client-secret)'
+    Jwt__Secret: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=jwt-secret)'
     Jwt__Issuer: jwtIssuer
     Jwt__Audience: jwtAudience
     Jwt__ExpirationMinutes: string(jwtExpirationMinutes)
