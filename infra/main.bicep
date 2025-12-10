@@ -10,7 +10,7 @@ param jwtIssuer string = 'https://greensquirrel.dev'
 param jwtAudience string = 'https://greensquirrel.dev'
 
 // Variables - using existing resource naming convention
-var cosmosDbAccountName = 'green-squirrel-cosmos'
+var cosmosDbAccountName = 'green-squirrel-db-${environment}'
 var staticWebAppName = 'green-squirrel-site'
 var appInsightsName = 'green-squirrel-insights'
 var logAnalyticsName = 'green-squirrel-logs'
