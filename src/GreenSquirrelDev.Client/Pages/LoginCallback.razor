@@ -1,0 +1,72 @@
+@page "/login-callback"
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Signing in...</PageTitle>
+
+<div class="container login-callback-container">
+    <div class="login-callback-card">
+        <div class="spinner"></div>
+        <h2>Completing sign in...</h2>
+        <p>Please wait while we finish setting up your account.</p>
+    </div>
+</div>
+
+<style>
+    .login-callback-container {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-callback-card {
+        text-align: center;
+        padding: 3rem;
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #4CAF50;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1.5rem;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .login-callback-card h2 {
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .login-callback-card p {
+        color: #666;
+    }
+</style>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Task.Delay(500); // Small delay to let auth state settle
+            
+            var isAuthenticated = await AuthService.IsAuthenticatedAsync();
+            
+            if (isAuthenticated)
+            {
+                NavigationManager.NavigateTo("/account", false);
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/login-error", false);
+            }
+        }
+    }
+}
