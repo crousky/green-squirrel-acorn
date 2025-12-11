@@ -11,12 +11,24 @@
   },
   "routes": [
     {
+      "route": "/guac-monster",
+      "rewrite": "/guac-monster/index.html"
+    },
+    {
       "route": "/login",
-      "rewrite": "/.auth/login/google?post_login_redirect_uri=/account"
+      "redirect": "/.auth/login/google?post_login_redirect_uri=/login-callback"
+    },
+    {
+      "route": "/login-callback",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/login-error",
+      "allowedRoles": ["anonymous"]
     },
     {
       "route": "/logout",
-      "redirect": "/.auth/logout"
+      "redirect": "/.auth/logout?post_logout_redirect_uri=/"
     },
     {
       "route": "/api/*",
@@ -37,7 +49,7 @@
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,gif,svg}", "/css/*", "/js/*", "/.auth/*"]
+    "exclude": ["/images/*.{png,jpg,gif,svg}", "/css/*", "/js/*", "/.auth/*", "/guac-monster/*"]
   },
   "responseOverrides": {
     "401": {

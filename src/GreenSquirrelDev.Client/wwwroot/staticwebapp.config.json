@@ -16,11 +16,19 @@
     },
     {
       "route": "/login",
-      "rewrite": "/.auth/login/google?post_login_redirect_uri=/account"
+      "redirect": "/.auth/login/google?post_login_redirect_uri=/login-callback"
+    },
+    {
+      "route": "/login-callback",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/login-error",
+      "allowedRoles": ["anonymous"]
     },
     {
       "route": "/logout",
-      "redirect": "/.auth/logout"
+      "redirect": "/.auth/logout?post_logout_redirect_uri=/"
     },
     {
       "route": "/api/*",
