@@ -39,7 +39,7 @@
         else if (!isAuthenticated)
         {
             <p>Please sign in with your Google account to authorize the Chrome extension.</p>
-            <a href="/login?post_login_redirect_uri=/auth/extension@(string.IsNullOrEmpty(ExtensionId) ? "" : $"?extensionId={ExtensionId}")" class="btn btn-primary btn-large">
+            <a href="/.auth/login/google?post_login_redirect_uri=/auth/extension@(string.IsNullOrEmpty(ExtensionId) ? "" : $"?extensionId={ExtensionId}")" class="btn btn-primary btn-large">
                 Sign in with Google
             </a>
         }

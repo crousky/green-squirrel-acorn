@@ -27,10 +27,10 @@
                                     <span>Account</span>
                                 }
                             </a>
-                            <a href="/logout" class="btn btn-secondary">Sign Out</a>
+                            <a href="/.auth/logout?post_logout_redirect_uri=/" class="btn btn-secondary">Sign Out</a>
                         </Authorized>
                         <NotAuthorized>
-                            <a href="/login" class="btn btn-primary">Sign In with Google</a>
+                            <a href="/.auth/login/google?post_login_redirect_uri=/login-callback" class="btn btn-primary">Sign In with Google</a>
                         </NotAuthorized>
                     </AuthorizeView>
                 </div>
