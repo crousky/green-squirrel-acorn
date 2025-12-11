@@ -23,7 +23,7 @@ public class AuthService : IAuthService
     public Task<AuthResponse?> SignInWithGoogleAsync()
     {
         // Navigate to Azure SWA's built-in Google auth endpoint
-        _navigationManager.NavigateTo("/login", forceLoad: true);
+        _navigationManager.NavigateTo("/.auth/login/google?post_login_redirect_uri=/login-callback", forceLoad: true);
         return Task.FromResult<AuthResponse?>(null);
     }
 
@@ -31,7 +31,7 @@ public class AuthService : IAuthService
     {
         _cachedPrincipal = null;
         _cachedUserProfile = null;
-        _navigationManager.NavigateTo("/logout", forceLoad: true);
+        _navigationManager.NavigateTo("/.auth/logout?post_logout_redirect_uri=/", forceLoad: true);
         return Task.CompletedTask;
     }
 
