@@ -9,6 +9,14 @@ param jwtIssuer string = 'https://greensquirrel.dev'
 @description('JWT Audience URL')
 param jwtAudience string = 'https://greensquirrel.dev'
 
+@description('Google OAuth Client ID')
+@secure()
+param googleClientId string
+
+@description('Google OAuth Client Secret')
+@secure()
+param googleClientSecret string
+
 // Variables - using existing resource naming convention
 var cosmosDbAccountName = 'green-squirrel-db-${environment}'
 var staticWebAppName = 'green-squirrel-site'
@@ -74,6 +82,8 @@ module staticWebApp 'static-web-app.bicep' = {
     jwtIssuer: jwtIssuer
     jwtAudience: jwtAudience
     appInsightsConnectionString: appInsights.outputs.connectionString
+    googleClientId: googleClientId
+    googleClientSecret: googleClientSecret
   }
   dependsOn: [
     cosmosDb

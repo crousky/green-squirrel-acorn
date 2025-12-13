@@ -29,7 +29,23 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      
+
+      - name: Retrieve Secrets from Key Vault
+        id: secrets
+        run: |
+          GOOGLE_CLIENT_ID=$(az keyvault secret show \
+            --vault-name kv-grnsqrl-prod \
+            --name google-client-id \
+            --query value -o tsv)
+          GOOGLE_CLIENT_SECRET=$(az keyvault secret show \
+            --vault-name kv-grnsqrl-prod \
+            --name google-client-secret \
+            --query value -o tsv)
+          echo "::add-mask::$GOOGLE_CLIENT_ID"
+          echo "::add-mask::$GOOGLE_CLIENT_SECRET"
+          echo "google_client_id=$GOOGLE_CLIENT_ID" >> $GITHUB_OUTPUT
+          echo "google_client_secret=$GOOGLE_CLIENT_SECRET" >> $GITHUB_OUTPUT
+
       - name: Deploy Infrastructure
         id: deploy
         run: |
@@ -37,6 +53,8 @@ jobs:
             --resource-group rg-green-squirrel \
             --template-file infra/main.bicep \
             --parameters infra/main.bicepparam \
+            --parameters googleClientId='${{ steps.secrets.outputs.google_client_id }}' \
+            --parameters googleClientSecret='${{ steps.secrets.outputs.google_client_secret }}' \
             --verbose
       
       - name: Get Deployment Outputs
