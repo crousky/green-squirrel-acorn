@@ -108,6 +108,8 @@ Deployment complete! Next steps:
    - google-client-secret
    - jwt-secret (min 32 characters)
 2. Configure your GitHub repository to deploy to: ${staticWebApp.outputs.defaultHostname}
-3. Update Google OAuth redirect URIs to include: https://${staticWebApp.outputs.defaultHostname}/.auth/login/google/callback
+3. Update Google OAuth redirect URIs to include both:
+   - https://${staticWebApp.outputs.defaultHostname}/.auth/login/google/callback
+   - https://${staticWebApp.outputs.defaultHostname}/.auth/complete/google/callback
 4. Verify the application by visiting: https://${staticWebApp.outputs.defaultHostname}
 '''
