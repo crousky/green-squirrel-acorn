@@ -1,21 +1,10 @@
 {
   "auth": {
     "identityProviders": {
-      "customOpenIdConnectProviders": {
-        "google": {
-          "registration": {
-            "clientIdSettingName": "Google__ClientId",
-            "clientCredential": {
-              "clientSecretSettingName": "Google__ClientSecret"
-            },
-            "openIdConnectConfiguration": {
-              "wellKnownOpenIdConfiguration": "https://accounts.google.com/.well-known/openid-configuration"
-            }
-          },
-          "login": {
-            "nameClaimType": "name",
-            "scopes": ["openid", "profile", "email"]
-          }
+      "google": {
+        "registration": {
+          "clientIdSettingName": "GOOGLE_CLIENT_ID",
+          "clientSecretSettingName": "GOOGLE_CLIENT_SECRET_APP_SETTING_NAME"
         }
       }
     }

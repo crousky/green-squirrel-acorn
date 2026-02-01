@@ -37,6 +37,14 @@ param jwtExpirationMinutes int = 1440
 @secure()
 param appInsightsConnectionString string = ''
 
+@description('Google OAuth Client ID')
+@secure()
+param googleClientId string
+
+@description('Google OAuth Client Secret')
+@secure()
+param googleClientSecret string
+
 // Static Web App
 resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
   name: staticWebAppName
@@ -69,8 +77,12 @@ resource staticWebAppSettings 'Microsoft.Web/staticSites/config@2023-12-01' = {
     CosmosDb__DatabaseName: cosmosDbDatabaseName
     CosmosDb__UsersContainer: 'Users'
     CosmosDb__ProjectsContainer: 'Projects'
-    Google__ClientId: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=google-client-id)'
-    Google__ClientSecret: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=google-client-secret)'
+    // Azure Static Web Apps built-in authentication
+    GOOGLE_CLIENT_ID: googleClientId
+    GOOGLE_CLIENT_SECRET_APP_SETTING_NAME: googleClientSecret
+    // Azure Functions custom authentication
+    Google__ClientId: googleClientId
+    Google__ClientSecret: googleClientSecret
     Jwt__Secret: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=jwt-secret)'
     Jwt__Issuer: jwtIssuer
     Jwt__Audience: jwtAudience
