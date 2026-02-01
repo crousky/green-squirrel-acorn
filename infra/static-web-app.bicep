@@ -77,6 +77,10 @@ resource staticWebAppSettings 'Microsoft.Web/staticSites/config@2023-12-01' = {
     CosmosDb__DatabaseName: cosmosDbDatabaseName
     CosmosDb__UsersContainer: 'Users'
     CosmosDb__ProjectsContainer: 'Projects'
+    // Azure Static Web Apps built-in authentication
+    GOOGLE_CLIENT_ID: googleClientId
+    GOOGLE_CLIENT_SECRET_APP_SETTING_NAME: googleClientSecret
+    // Azure Functions custom authentication
     Google__ClientId: googleClientId
     Google__ClientSecret: googleClientSecret
     Jwt__Secret: '@Microsoft.KeyVault(VaultName=${keyVaultName};SecretName=jwt-secret)'
