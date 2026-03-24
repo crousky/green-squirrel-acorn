@@ -51,24 +51,6 @@
                     <small class="form-hint">This name will be displayed across the site.</small>
                 </div>
 
-                <div class="hive-reader-settings" style="margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem;">
-                    <h3>HiveReader Settings</h3>
-                    <div class="form-group">
-                        <label for="kindleEmail">Kindle Email Address</label>
-                        <input type="email"
-                               id="kindleEmail"
-                               @bind="editKindleEmail"
-                               @bind:event="oninput"
-                               class="form-control"
-                               placeholder="username@kindle.com"
-                               maxlength="100" />
-                        <small class="form-hint">
-                            Enter your Send-to-Kindle email address. 
-                            Make sure to whitelist <strong>noreply@greensquirrel.dev</strong> in your Amazon settings.
-                        </small>
-                    </div>
-                </div>
-
                 @if (!string.IsNullOrEmpty(errorMessage))
                 {
                     <div class="alert alert-error">@errorMessage</div>
@@ -123,17 +105,12 @@
     private UserProfileDTO? user;
     private string? editDisplayName;
     private string? originalDisplayName;
-    private string? originalKindleEmail;
-    private string? editKindleEmail;
     private bool isLoading = true;
     private bool isSaving = false;
     private string? errorMessage;
     private string? successMessage;
-    
-    [Inject] IHiveReaderService HiveReaderService { get; set; } = default!;
 
-    private bool HasChanges => (editDisplayName != originalDisplayName && !string.IsNullOrWhiteSpace(editDisplayName)) 
-                            || (editKindleEmail != originalKindleEmail);
+    private bool HasChanges => editDisplayName != originalDisplayName && !string.IsNullOrWhiteSpace(editDisplayName);
 
     protected override async Task OnInitializedAsync()
     {
@@ -152,10 +129,6 @@
             {
                 editDisplayName = user.DisplayName;
                 originalDisplayName = user.DisplayName;
-                
-                var kindleEmail = await HiveReaderService.GetKindleEmailAsync();
-                editKindleEmail = kindleEmail;
-                originalKindleEmail = kindleEmail;
             }
         }
         catch
@@ -183,27 +156,20 @@
         try
         {
             var updatedUser = await AuthService.UpdateProfileAsync(editDisplayName.Trim());
-            
-            bool kindleEmailUpdated = true;
-            if (editKindleEmail != originalKindleEmail)
-            {
-                kindleEmailUpdated = await HiveReaderService.UpdateKindleEmailAsync(editKindleEmail ?? string.Empty);
-            }
 
-            if (updatedUser != null && kindleEmailUpdated)
+            if (updatedUser != null)
             {
                 user = updatedUser;
                 originalDisplayName = updatedUser.DisplayName;
                 editDisplayName = updatedUser.DisplayName;
-                originalKindleEmail = editKindleEmail;
-                successMessage = "Your profile and settings have been updated successfully.";
+                successMessage = "Your profile has been updated successfully.";
 
                 // Clear cache to refresh the layout
                 AuthService.ClearCache();
             }
             else
             {
-                errorMessage = "Failed to update profile or settings. Please try again.";
+                errorMessage = "Failed to update profile. Please try again.";
             }
         }
         catch
@@ -219,7 +185,6 @@
     private void ResetChanges()
     {
         editDisplayName = originalDisplayName;
-        editKindleEmail = originalKindleEmail;
         errorMessage = null;
         successMessage = null;
     }

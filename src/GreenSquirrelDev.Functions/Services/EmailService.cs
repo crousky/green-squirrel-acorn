@@ -79,13 +79,13 @@ public class EmailService : IEmailService
 
         try
         {
-            var subject = $"Article from HiveReader: {title}";
+            var subject = $"Article from Scurry: {title}";
             var htmlContent = $@"
                 <html>
                     <body>
                         <h1>Article Sent to Kindle</h1>
                         <p><strong>Title:</strong> {title}</p>
-                        <p>Sent by HiveReader</p>
+                        <p>Sent by Scurry</p>
                     </body>
                 </html>";
 
