@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp \"C:/projects/scurry/screenshots/www.goscurry.app_.png\" \"C:/projects/green-squirrel-acorn/src/GreenSquirrelDev.Client/wwwroot/images/projects/scurry-1.png\")",
+      "Bash(cp \"C:/projects/scurry/screenshots/extension_popup.png\" \"C:/projects/green-squirrel-acorn/src/GreenSquirrelDev.Client/wwwroot/images/projects/scurry-2.png\")",
+      "Bash(cp \"C:/projects/scurry/screenshots/www.goscurry.app_.png\" \"C:/projects/green-squirrel-acorn/src/GreenSquirrelDev.Client/wwwroot/images/projects/scurry-thumb.png\")"
+    ]
+  }
+}

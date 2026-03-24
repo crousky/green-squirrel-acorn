@@ -7,7 +7,7 @@ A modern portfolio site showcasing innovative developer tools and applications, 
 Green Squirrel Dev is a portfolio and project showcase platform featuring:
 
 - **Pace Calculator** - A tool for runners to calculate paces, times, and distances
-- **HiveReader** - Send web articles to Kindle with Chrome extension support (In Development)
+- **Scurry** - Send web articles to Kindle with Chrome extension support (https://www.goscurry.app/)
 - User authentication via Google OAuth
 - Chrome extension integration support
 - Responsive, modern design with green squirrel branding
@@ -182,7 +182,7 @@ Green Squirrel Dev is an individual software development company focused on crea
 
 - **Main Site**: https://greensquirrel.dev
 - **Pace Calculator**: https://pacecalculator.greensquirrel.dev
-- **HiveReader**: https://hive-reader.greensquirrel.dev (Coming Soon)
+- **Scurry**: https://www.goscurry.app/
 
 ## 📧 Contact
 

@@ -13,18 +13,10 @@
         {
             "name": "Launch Azure Functions",
             "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build-functions",
-            "program": "${workspaceFolder}/src/GreenSquirrelDev.Functions/bin/Debug/net8.0/GreenSquirrelDev.Functions.dll",
-            "args": [
-                "host",
-                "start",
-                "--port",
-                "7071"
-            ],
-            "cwd": "${workspaceFolder}/src/GreenSquirrelDev.Functions",
-            "console": "integratedTerminal",
-            "stopAtEntry": false
+            "request": "attach",
+            "processName": "dotnet",
+            "preLaunchTask": "start-functions",
+            "cwd": "${workspaceFolder}/src/GreenSquirrelDev.Functions"
         },
         {
             "name": "Attach to Azure Functions",
